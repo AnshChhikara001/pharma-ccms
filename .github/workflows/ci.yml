@@ -12,7 +12,7 @@ env:
   AI_PROVIDER: mock
   ENVIRONMENT: test
   SECRET_KEY: ci-secret-key-not-used-outside-ci
-  DATABASE_URL_OVERRIDE: sqlite+pysqlite:///:memory:
+  DATABASE_URL_OVERRIDE: "sqlite+pysqlite:///:memory:"
 
 jobs:
   backend:
@@ -22,9 +22,9 @@ jobs:
       run:
         working-directory: backend
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
           cache: pip
@@ -49,7 +49,7 @@ jobs:
         run: python -m scripts.export_openapi
 
       - name: Upload OpenAPI schema
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: openapi-schema
           path: backend/openapi.json
@@ -62,9 +62,9 @@ jobs:
       run:
         working-directory: frontend
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v7
         with:
           node-version: "22"
           cache: npm
@@ -74,7 +74,7 @@ jobs:
         run: npm ci
 
       - name: Download OpenAPI schema
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: openapi-schema
           path: backend
