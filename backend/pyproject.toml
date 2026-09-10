@@ -1,0 +1,40 @@
+[project]
+name = "ccms-backend"
+version = "0.1.0"
+description = "AI-Powered Customer Complaint Management System - pharmaceutical QMS backend"
+requires-python = ">=3.12"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["alembic/versions"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "UP", "B", "C4", "SIM", "RUF"]
+ignore = [
+    "B008",   # FastAPI's Depends() in defaults is the documented idiom
+    "RUF012", # mutable class attrs are fine on SQLAlchemy/Pydantic models
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["E501"]
+
+[tool.mypy]
+python_version = "3.12"
+plugins = ["pydantic.mypy"]
+ignore_missing_imports = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+no_implicit_optional = true
+exclude = ["alembic/", "^build/"]
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_defs = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+# AI_PROVIDER=mock is forced in tests/conftest.py before the app is imported,
+# so the suite is deterministic and never spends money.
+filterwarnings = ["ignore::DeprecationWarning"]
