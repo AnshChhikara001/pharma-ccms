@@ -1,0 +1,162 @@
+{
+  "components": {
+    "schemas": {
+      "EnumOption": {
+        "description": "A selectable option. `label` is display text derived from the value.",
+        "properties": {
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "value": {
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "value",
+          "label"
+        ],
+        "title": "EnumOption",
+        "type": "object"
+      },
+      "VocabularyResponse": {
+        "description": "Every enum the intake form and filters need, in one round trip.",
+        "properties": {
+          "complaint_sources": {
+            "items": {
+              "$ref": "#/components/schemas/EnumOption"
+            },
+            "title": "Complaint Sources",
+            "type": "array"
+          },
+          "complaint_statuses": {
+            "items": {
+              "$ref": "#/components/schemas/EnumOption"
+            },
+            "title": "Complaint Statuses",
+            "type": "array"
+          },
+          "complaint_types": {
+            "items": {
+              "$ref": "#/components/schemas/EnumOption"
+            },
+            "title": "Complaint Types",
+            "type": "array"
+          },
+          "document_kinds": {
+            "items": {
+              "$ref": "#/components/schemas/EnumOption"
+            },
+            "title": "Document Kinds",
+            "type": "array"
+          },
+          "dosage_forms": {
+            "items": {
+              "$ref": "#/components/schemas/EnumOption"
+            },
+            "title": "Dosage Forms",
+            "type": "array"
+          },
+          "priorities": {
+            "items": {
+              "$ref": "#/components/schemas/EnumOption"
+            },
+            "title": "Priorities",
+            "type": "array"
+          },
+          "quantity_units": {
+            "items": {
+              "$ref": "#/components/schemas/EnumOption"
+            },
+            "title": "Quantity Units",
+            "type": "array"
+          },
+          "severities": {
+            "items": {
+              "$ref": "#/components/schemas/EnumOption"
+            },
+            "title": "Severities",
+            "type": "array"
+          },
+          "user_roles": {
+            "items": {
+              "$ref": "#/components/schemas/EnumOption"
+            },
+            "title": "User Roles",
+            "type": "array"
+          }
+        },
+        "required": [
+          "user_roles",
+          "complaint_statuses",
+          "severities",
+          "priorities",
+          "complaint_sources",
+          "complaint_types",
+          "dosage_forms",
+          "quantity_units",
+          "document_kinds"
+        ],
+        "title": "VocabularyResponse",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "description": "Pharmaceutical customer complaint management with AI-assisted intake, triage and investigation support.",
+    "title": "AI-Powered Customer Complaint Management System",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/v1/meta/vocabulary": {
+      "get": {
+        "description": "Single source of dropdown options for the entire frontend.",
+        "operationId": "get_vocabulary_api_v1_meta_vocabulary_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VocabularyResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "All domain enums",
+        "tags": [
+          "meta"
+        ]
+      }
+    },
+    "/health": {
+      "get": {
+        "description": "Unauthenticated liveness check used by Docker, CI and the smoke tests.",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Health Health Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Liveness probe",
+        "tags": [
+          "system"
+        ]
+      }
+    }
+  }
+}

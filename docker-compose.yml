@@ -1,0 +1,31 @@
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: ccms_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-ccms}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ccms_dev_password}
+      POSTGRES_DB: ${POSTGRES_DB:-ccms}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - ccms_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ccms} -d ${POSTGRES_DB:-ccms}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  adminer:
+    image: adminer:5
+    container_name: ccms_adminer
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+
+volumes:
+  ccms_pgdata:

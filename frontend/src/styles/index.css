@@ -1,0 +1,128 @@
+@import "tailwindcss";
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Design tokens, derived from the reference intake screen.
+
+   Tailwind v4 is configured HERE, in CSS. There is no tailwind.config.js in v4;
+   creating one would be silently ignored. Every token below is available as a
+   utility (e.g. --color-ink-900 -> text-ink-900, --radius-card -> rounded-card).
+   ───────────────────────────────────────────────────────────────────────────── */
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  /* Neutral ramp - page chrome, text, borders */
+  --color-canvas: #eef2f7;
+  --color-surface: #ffffff;
+  --color-field: #f8fafc;
+  --color-line: #e6ebf2;
+  --color-line-strong: #d7dfea;
+
+  --color-ink-900: #0f172a;
+  --color-ink-700: #334155;
+  --color-ink-500: #64748b;
+  --color-ink-400: #94a3b8;
+
+  /* Primary action - the "Save Complaint" blue */
+  --color-brand-50: #eff6ff;
+  --color-brand-100: #dbeafe;
+  --color-brand-200: #bfdbfe;
+  --color-brand-500: #3b82f6;
+  --color-brand-600: #2563eb;
+  --color-brand-700: #1d4ed8;
+
+  /* Status accents */
+  --color-pending-bg: #fffbeb;
+  --color-pending-line: #fde68a;
+  --color-pending-ink: #b45309;
+
+  --color-ok-bg: #f0fdf4;
+  --color-ok-line: #bbf7d0;
+  --color-ok-ink: #15803d;
+
+  --color-risk-bg: #fef2f2;
+  --color-risk-line: #fecaca;
+  --color-risk-ink: #b91c1c;
+
+  /* AI provenance - marks fields the assistant populated */
+  --color-ai-bg: #f5f3ff;
+  --color-ai-line: #ddd6fe;
+  --color-ai-ink: #6d28d9;
+
+  --radius-card: 14px;
+  --radius-field: 8px;
+
+  --shadow-card: 0 1px 2px rgb(15 23 42 / 0.04), 0 1px 3px rgb(15 23 42 / 0.06);
+}
+
+/* ── Base ──────────────────────────────────────────────────────────────────── */
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-ink-900);
+    font-family: var(--font-sans);
+  }
+
+  /* Keyboard focus must stay visible: this is a regulated workflow and users
+     navigate long forms by keyboard. */
+  :focus-visible {
+    outline: 2px solid var(--color-brand-600);
+    outline-offset: 2px;
+  }
+}
+
+/* ── Reusable primitives ───────────────────────────────────────────────────── */
+@layer components {
+  .ccms-card {
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+  }
+
+  /* Small uppercase rule used for "1. ORIGIN & CUSTOMER DETAILS" */
+  .ccms-section-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-ink-500);
+  }
+
+  .ccms-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-ink-700);
+  }
+
+  .ccms-input {
+    width: 100%;
+    background-color: var(--color-field);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-field);
+    padding: 9px 12px;
+    font-size: 13.5px;
+    color: var(--color-ink-900);
+  }
+
+  .ccms-input::placeholder {
+    color: var(--color-ink-400);
+  }
+
+  .ccms-input:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+
+  /* Applied to any field the AI populated, so a reviewer can always tell
+     machine-supplied values from ones they typed. */
+  .ccms-input--ai {
+    background-color: var(--color-ai-bg);
+    border-color: var(--color-ai-line);
+  }
+}
