@@ -105,8 +105,8 @@ Built in phases; each lands as its own pull request.
 | Phase | Scope | Status |
 |---|---|---|
 | 0 | Foundation, domain contract, CI, subagents | ✅ Complete |
-| 1 | Data model, JWT auth, RBAC, audit trail | ⏳ Next |
-| 2 | Complaint CRUD, filters, workflow engine, seed data | ⏳ |
+| 1 | Data model, JWT auth, RBAC, audit trail | ✅ Complete |
+| 2 | Complaint CRUD, filters, workflow engine, seed data | ⏳ Next |
 | 3 | LangGraph AI layer + cost governor | ⏳ |
 | 4 | AI-first intake screen | ⏳ |
 | 5 | Complaint list + investigation workspace | ⏳ |
@@ -123,6 +123,25 @@ New → Under Review → Investigation → Root Cause Identified
 Transitions are defined in one table and validated server-side; illegal
 transitions are rejected with 409, unauthorised ones with 403.
 
-## Roles
+## Roles and demo accounts
 
-`admin` · `qa_manager` · `complaint_officer` · `investigator` · `viewer`
+Run `python -m seeds.run` to create one account per role. All share the password
+`Demo@12345` — acceptable for a demo system, and nowhere near acceptable for production.
+
+| Role | Email | May do |
+|---|---|---|
+| `admin` | admin@pharmaco.com | Everything, including user management |
+| `qa_manager` | qa.manager@pharmaco.com | Approve root causes and CAPAs; **only role besides admin that can close a complaint** |
+| `complaint_officer` | complaint.officer@pharmaco.com | Log and triage complaints, run AI extraction, assign investigators |
+| `investigator` | investigator@pharmaco.com | Investigate and **propose** root causes — cannot approve their own findings |
+| `viewer` | viewer@pharmaco.com | Read-only |
+
+Segregation of duties is enforced in the API, not just the UI: the person who
+performs the work is never the person who approves it.
+
+## Audit trail
+
+Every change to a complaint, investigation, root cause, CAPA or user is recorded
+automatically by SQLAlchemy event listeners — **no endpoint writes audit entries**,
+so none can forget to. Password hashes are redacted, and entries survive deletion
+of the row they describe.
