@@ -118,8 +118,12 @@ Built in phases; each lands as its own pull request.
 | 3 | LangGraph AI layer + cost governor | ✅ Complete |
 | 4 | Authentication and AI-first intake screen | ✅ Complete |
 | 5 | Complaint list, detail, workflow and triage intelligence | ✅ Complete |
-| 6 | Demo hardening and GitHub presentation | ⏳ In progress |
+| 6 | Demo hardening and GitHub presentation | ✅ Complete |
 | 7 | Investigation, root cause, CAPA and document upload | Deferred |
+
+The MVP code and repository presentation are complete. The remaining internship
+deliverables are the external demonstration videos; production deployment is
+outside this local demo scope.
 
 ### MVP AI features
 
