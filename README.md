@@ -1,9 +1,9 @@
 # AI-Powered Customer Complaint Management System
 
 A pharmaceutical Quality Management System for handling customer complaints from
-intake through investigation, root cause, CAPA, QA review and closure — built
-around an **AI-first intake** model where complaints are described in natural
-language or uploaded as documents rather than typed into a form.
+AI-assisted intake through triage, investigation, QA review and closure. The
+internship MVP focuses on a reviewer-first intake flow where complaints are
+described in natural language and converted into structured, auditable records.
 
 > **AI outputs in this system are recommendations for qualified QA review.**
 > They are never confirmed root causes or regulatory determinations.
@@ -19,7 +19,7 @@ language or uploaded as documents rather than typed into a form.
 | Backend | Python 3.12 · FastAPI · SQLAlchemy 2 · Alembic |
 | AI agent | LangGraph 1.2 |
 | Database | PostgreSQL 17 |
-| Providers | Gemini (free tier, primary) · OpenAI `gpt-5-nano` (fallback) · mock (tests) |
+| Providers | Deterministic mock (local demo) · Gemini (optional) · OpenAI `gpt-5-nano` (optional fallback) |
 
 ## Architecture: one contract, three consumers
 
@@ -65,6 +65,13 @@ npm install
 npm run dev                                       # http://localhost:5173
 ```
 
+Open `http://localhost:5173`, sign in with
+`complaint.officer@pharmaco.com` / `Demo@12345`, and use **New intake** to paste
+a complaint narrative into the AI Complaint Intake Copilot. The local demo uses
+the deterministic mock provider, so it works without an API key. Run
+`python -m seeds.run` from `backend/` after the database is available to load the
+demo users, reference data and complaint queue.
+
 ## AI configuration
 
 The system runs against three interchangeable providers, selected by
@@ -72,13 +79,14 @@ The system runs against three interchangeable providers, selected by
 
 | Provider | Model | Cost | Use |
 |---|---|---|---|
-| `gemini` | `gemini-2.5-flash` | **Free tier**, text + image | Development and demo |
+| `mock` | recorded deterministic fixtures | **Free** | Recommended local demo and CI |
+| `gemini` | `gemini-2.5-flash` | **Free tier**, text + image | Optional live provider |
 | `openai` | `gpt-5-nano` | $0.05/1M in · $0.40/1M out | Paid fallback |
-| `mock` | recorded fixtures | **Free** | Tests and CI, always |
 
-Get a free Gemini key at [aistudio.google.com](https://aistudio.google.com) — no
-card required, and the free tier accepts image input, so scanned complaint photos
-are handled without a separate OCR stack.
+To try live Gemini output, set `AI_PROVIDER=gemini` and provide
+`GOOGLE_API_KEY`. Get a free Gemini key at
+[aistudio.google.com](https://aistudio.google.com). The MVP's working intake path
+is text-based; document and image upload remain future work.
 
 **Spend is governed, not trusted.** `app/ai/budget.py` records every call and
 enforces `AI_BUDGET_USD` as a hard ceiling *before* contacting a provider, so a
@@ -107,11 +115,24 @@ Built in phases; each lands as its own pull request.
 | 0 | Foundation, domain contract, CI, subagents | ✅ Complete |
 | 1 | Data model, JWT auth, RBAC, audit trail | ✅ Complete |
 | 2 | Complaint CRUD, filters, workflow engine, seed data | ✅ Complete |
-| 3 | LangGraph AI layer + cost governor | ⏳ Next |
-| 4 | AI-first intake screen | ⏳ |
-| 5 | Complaint list + investigation workspace | ⏳ |
-| 6 | Dashboard + AI intelligence | ⏳ |
-| 7 | Hardening and demo preparation | ⏳ |
+| 3 | LangGraph AI layer + cost governor | ✅ Complete |
+| 4 | Authentication and AI-first intake screen | ✅ Complete |
+| 5 | Complaint list, detail, workflow and triage intelligence | ✅ Complete |
+| 6 | Demo hardening and GitHub presentation | ⏳ In progress |
+| 7 | Investigation, root cause, CAPA and document upload | Deferred |
+
+### MVP AI features
+
+The visible MVP demonstrates four working features:
+
+- Complaint completeness checking with missing-field guidance
+- Advisory risk classification with severity and priority recommendations
+- Deterministic duplicate complaint detection using verifiable complaint facts
+- Factual complaint summaries for QA review
+
+Root-cause and CAPA recommendations remain available in the backend assessment
+contract for a future investigation phase, but are not presented as completed
+MVP workflows.
 
 ## Complaint lifecycle
 
@@ -157,6 +178,15 @@ of the row they describe.
 | `GET /complaints/{id}` · `PATCH /complaints/{id}` · `DELETE /complaints/{id}` | `PATCH` is a true partial update (`exclude_unset=True`); `DELETE` only works while a complaint is still `new` — anything further along is closed with a reason instead |
 | `POST /complaints/{id}/transition` · `GET /complaints/{id}/transitions` | Move the complaint and read its timeline |
 | `GET /meta/workflow` | The transition table itself, so the UI's buttons are derived from the same rule the server enforces, never a second copy of it |
+
+AI endpoints:
+
+| Endpoint | Purpose |
+|---|---|
+| `POST /ai/extract` | Extract complaint fields, provenance, missing fields and clarifying questions from pasted text |
+| `POST /ai/complaints/{id}/assess` | Generate and persist the latest advisory assessment and duplicate candidates |
+| `GET /ai/complaints/{id}/assessment` | Read the saved assessment without spending AI budget |
+| `GET /ai/budget` | Read current provider spend and remaining budget |
 
 `batch_number` is the recall question — every complaint logged against a given
 lot, across every customer that reported it. Two things happen automatically on

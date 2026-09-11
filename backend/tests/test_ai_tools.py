@@ -412,3 +412,40 @@ def test_assess_endpoint_supersedes_prior_assessment(
     assert len(records) == 2
     assert records[0].is_superseded is True
     assert records[1].is_superseded is False
+
+
+def test_assessment_read_returns_404_before_generation(
+    client: TestClient, auth_headers, make_complaint
+) -> None:
+    complaint = make_complaint()
+
+    response = client.get(
+        f"/api/v1/ai/complaints/{complaint['id']}/assessment",
+        headers=auth_headers(UserRole.VIEWER),
+    )
+
+    assert response.status_code == 404
+    assert "No AI assessment exists" in response.json()["detail"]
+
+
+def test_assessment_read_is_available_to_viewers_without_spending_again(
+    client: TestClient, auth_headers, make_complaint
+) -> None:
+    complaint = make_complaint(complaint_type="adverse_event", batch_number="READ-0001")
+    qa_headers = auth_headers(UserRole.QA_MANAGER)
+
+    generated = client.post(
+        f"/api/v1/ai/complaints/{complaint['id']}/assess",
+        headers=qa_headers,
+    )
+    assert generated.status_code == 200, generated.text
+
+    read = client.get(
+        f"/api/v1/ai/complaints/{complaint['id']}/assessment",
+        headers=auth_headers(UserRole.VIEWER),
+    )
+
+    assert read.status_code == 200, read.text
+    body = read.json()
+    assert body["assessment"]["recommended_severity"] == "critical"
+    assert body["duplicates"] == []

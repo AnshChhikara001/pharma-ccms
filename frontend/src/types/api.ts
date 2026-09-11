@@ -60,6 +60,31 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/ai/complaints/{complaint_id}/assessment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get the latest saved assessment
+         * @description Read the latest assessment without spending AI budget.
+         *
+         *     Assessments are append-only records because the recommendation can change as
+         *     a complaint is completed. The detail page needs a read path so refreshing
+         *     the page does not re-run the model, while duplicate candidates are safely
+         *     recomputed from current database facts because that query is deterministic.
+         */
+        get: operations["get_assessment_api_v1_ai_complaints__complaint_id__assessment_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/ai/complaints/{complaint_id}/edit": {
         parameters: {
             query?: never;
@@ -1221,6 +1246,37 @@ export interface operations {
         };
     };
     assess_api_v1_ai_complaints__complaint_id__assess_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                complaint_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssessResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_assessment_api_v1_ai_complaints__complaint_id__assessment_get: {
         parameters: {
             query?: never;
             header?: never;

@@ -2309,6 +2309,54 @@
         ]
       }
     },
+    "/api/v1/ai/complaints/{complaint_id}/assessment": {
+      "get": {
+        "description": "Read the latest assessment without spending AI budget.\n\nAssessments are append-only records because the recommendation can change as\na complaint is completed. The detail page needs a read path so refreshing\nthe page does not re-run the model, while duplicate candidates are safely\nrecomputed from current database facts because that query is deterministic.",
+        "operationId": "get_assessment_api_v1_ai_complaints__complaint_id__assessment_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "complaint_id",
+            "required": true,
+            "schema": {
+              "title": "Complaint Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssessResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Get the latest saved assessment",
+        "tags": [
+          "ai"
+        ]
+      }
+    },
     "/api/v1/ai/complaints/{complaint_id}/edit": {
       "post": {
         "description": "Propose only the fields `payload.instruction` asks to change.\n\nReturns a preview, never an applied change - the AI layer is advisory\n(CLAUDE.md non-negotiable #4). A caller who accepts the proposal submits\n`update` verbatim to the existing `PATCH /api/v1/complaints/{id}`, which\nalready enforces `exclude_unset=True`, RBAC and the merge-validation\nrules; this endpoint does not touch the database.\n\nThe proposal is carried as `ComplaintFieldChanges`, not `ComplaintUpdate`\nitself - see that class's docstring in `app/schemas/ai.py` for why\n`ComplaintUpdate` must never appear in a response body.",
