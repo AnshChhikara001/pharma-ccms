@@ -125,4 +125,46 @@
     background-color: var(--color-ai-bg);
     border-color: var(--color-ai-line);
   }
+
+  .ccms-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-radius: var(--radius-field);
+    padding: 9px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    transition: background-color 150ms ease, border-color 150ms ease, opacity 150ms ease;
+  }
+
+  .ccms-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+
+  .ccms-button--primary {
+    background-color: var(--color-brand-600);
+    color: white;
+  }
+
+  .ccms-button--primary:hover:not(:disabled) {
+    background-color: var(--color-brand-700);
+  }
+
+  .ccms-button--secondary {
+    border: 1px solid var(--color-line-strong);
+    background-color: var(--color-surface);
+    color: var(--color-ink-700);
+  }
+
+  .ccms-button--secondary:hover:not(:disabled),
+  .ccms-button--ghost:hover:not(:disabled) {
+    background-color: var(--color-field);
+  }
+
+  .ccms-button--ghost {
+    border: 1px solid var(--color-line);
+    color: var(--color-ink-500);
+  }
 }

@@ -25,6 +25,7 @@ dist-ssr/
 # AI runtime artifacts
 backend/.ai_cache/
 backend/ai_spend.json
+.claude/scheduled_tasks.lock
 
 # Local test database
 backend/test_ccms.db

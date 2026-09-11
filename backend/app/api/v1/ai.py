@@ -15,7 +15,7 @@ status codes, and leave the actual work to `app/ai/*`.
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import update
+from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
 from app.ai import budget, graph
@@ -34,7 +34,7 @@ from app.schemas.ai import (
     EditResponse,
     ExtractRequest,
 )
-from app.schemas.complaint import ComplaintRead, ExtractedComplaint
+from app.schemas.complaint import AIAssessment, ComplaintRead, ExtractedComplaint
 
 router = APIRouter()
 
@@ -87,6 +87,46 @@ def extract(
         return graph.run_extract(payload.text)
     except budget.BudgetExceeded as exc:
         raise HTTPException(status_code=status.HTTP_402_PAYMENT_REQUIRED, detail=str(exc)) from exc
+
+
+@router.get(
+    "/complaints/{complaint_id}/assessment",
+    response_model=AssessResponse,
+    summary="Get the latest saved assessment",
+)
+def get_assessment(
+    complaint_id: int,
+    db: Session = Depends(get_db),
+    _: User = Depends(require(Permission.COMPLAINT_READ)),
+) -> AssessResponse:
+    """Read the latest assessment without spending AI budget.
+
+    Assessments are append-only records because the recommendation can change as
+    a complaint is completed. The detail page needs a read path so refreshing
+    the page does not re-run the model, while duplicate candidates are safely
+    recomputed from current database facts because that query is deterministic.
+    """
+    complaint = _get_or_404(db, complaint_id)
+    record = db.execute(
+        select(AIAssessmentRecord)
+        .where(
+            AIAssessmentRecord.complaint_id == complaint.id,
+            AIAssessmentRecord.is_superseded.is_(False),
+        )
+        .order_by(AIAssessmentRecord.created_at.desc(), AIAssessmentRecord.id.desc())
+        .limit(1)
+    ).scalar_one_or_none()
+
+    if record is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"No AI assessment exists for complaint {complaint.reference_code}",
+        )
+
+    return AssessResponse(
+        assessment=AIAssessment.model_validate(record.payload),
+        duplicates=find_duplicate_candidates(db, complaint),
+    )
 
 
 @router.post(
