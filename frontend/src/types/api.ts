@@ -93,6 +93,120 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/complaints": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Search complaints
+         * @description The complaint queue, filtered and paged.
+         *
+         *     Every filter is optional and they compose; `batch_number` is the one that
+         *     answers the recall question - every complaint logged against a given lot.
+         */
+        get: operations["list_complaints_api_v1_complaints_get"];
+        put?: never;
+        /**
+         * Log a complaint
+         * @description Create a complaint in `new`, with its reference code and timeline started.
+         *
+         *     Assigning an investigator at intake is allowed but needs the same permission
+         *     a later reassignment does.
+         */
+        post: operations["create_complaint_api_v1_complaints_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/complaints/{complaint_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a complaint */
+        get: operations["get_complaint_api_v1_complaints__complaint_id__get"];
+        put?: never;
+        post?: never;
+        /**
+         * Delete a complaint
+         * @description Delete an untriaged complaint - a duplicate or a mis-entry.
+         *
+         *     Only possible while the complaint is still `new`. Anything further along has
+         *     become part of the quality record and must be closed with a reason instead.
+         *     The audit trail keeps a full snapshot of whatever is removed.
+         */
+        delete: operations["delete_complaint_api_v1_complaints__complaint_id__delete"];
+        options?: never;
+        head?: never;
+        /**
+         * Update a complaint
+         * @description Partial update. Fields not mentioned are not touched.
+         *
+         *     Two extra rules are enforced here rather than in the service, because both
+         *     are about *who is asking*:
+         *
+         *     * Changing the assigned investigator additionally requires COMPLAINT_ASSIGN.
+         *       `assigned_investigator_id` is an editable field like any other, so without
+         *       this an investigator holding only COMPLAINT_UPDATE could reassign their
+         *       own work and the separate permission would mean nothing.
+         *     * A closed complaint is a signed-off record and is not editable. Reopening
+         *       is deliberately impossible - see services/workflow.py.
+         */
+        patch: operations["update_complaint_api_v1_complaints__complaint_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/complaints/{complaint_id}/transition": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Move a complaint through the workflow
+         * @description Advance or return a complaint.
+         *
+         *     Legality comes from the table in `services/workflow.py`; this handler only
+         *     supplies the permission check that depends on the *target* - closing needs
+         *     WORKFLOW_CLOSE, which only QA managers and admins hold.
+         */
+        post: operations["transition_complaint_api_v1_complaints__complaint_id__transition_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/complaints/{complaint_id}/transitions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Complaint timeline
+         * @description Every status change, oldest first. The first row records creation and has
+         *     a null `from_status`.
+         */
+        get: operations["complaint_timeline_api_v1_complaints__complaint_id__transitions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/meta/vocabulary": {
         parameters: {
             query?: never;
@@ -105,6 +219,30 @@ export interface paths {
          * @description Single source of dropdown options for the entire frontend.
          */
         get: operations["get_vocabulary_api_v1_meta_vocabulary_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/meta/workflow": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The lifecycle table
+         * @description Serve the transition table so the UI never hard-codes the lifecycle.
+         *
+         *     The buttons a user sees are derived from the same table
+         *     `services/workflow.py` validates against, which is what stops the frontend
+         *     from offering a move the server will reject - or hiding one it would allow.
+         */
+        get: operations["get_workflow_api_v1_meta_workflow_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -162,6 +300,285 @@ export interface components {
             username: string;
         };
         /**
+         * ComplaintCreate
+         * @description Creation payload. Description is the one field we insist on - a complaint
+         *     with no narrative is not triageable, and the AI can derive most of the rest
+         *     from it.
+         */
+        ComplaintCreate: {
+            /** Assigned Investigator Id */
+            assigned_investigator_id?: number | null;
+            /**
+             * Batch Number
+             * @description Batch / lot number as printed on pack.
+             */
+            batch_number?: string | null;
+            /**
+             * Complaint Date
+             * @description Date the complaint was raised by the customer.
+             */
+            complaint_date?: string | null;
+            complaint_type?: components["schemas"]["ComplaintType"] | null;
+            /** Customer Contact */
+            customer_contact?: string | null;
+            /**
+             * Customer Name
+             * @description Reporting customer or institution.
+             */
+            customer_name?: string | null;
+            /** Description */
+            description: string;
+            dosage_form?: components["schemas"]["DosageForm"] | null;
+            /** Due Date */
+            due_date?: string | null;
+            /** Expiry Date */
+            expiry_date?: string | null;
+            /** Manufacturing Date */
+            manufacturing_date?: string | null;
+            priority?: components["schemas"]["Priority"] | null;
+            /** Product Name */
+            product_name?: string | null;
+            /**
+             * Product Strength
+             * @description Strength or grade, e.g. "500 mg".
+             */
+            product_strength?: string | null;
+            /** Quantity Affected */
+            quantity_affected?: number | string | null;
+            quantity_unit?: components["schemas"]["QuantityUnit"] | null;
+            /**
+             * Reporter Name
+             * @description Individual who raised it, if named.
+             */
+            reporter_name?: string | null;
+            severity?: components["schemas"]["Severity"] | null;
+            /** @description How the complaint reached us. */
+            source?: components["schemas"]["ComplaintSource"] | null;
+        };
+        /**
+         * ComplaintListItem
+         * @description Trimmed projection for the list view.
+         *
+         *     Separate from ComplaintRead on purpose: the list renders up to 50 rows and
+         *     has no use for the 8 KB description field.
+         */
+        ComplaintListItem: {
+            /** Assigned Investigator Id */
+            assigned_investigator_id: number | null;
+            /** Batch Number */
+            batch_number: string | null;
+            /** Complaint Date */
+            complaint_date: string | null;
+            complaint_type: components["schemas"]["ComplaintType"] | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Customer Name */
+            customer_name: string | null;
+            /** Due Date */
+            due_date: string | null;
+            /** Id */
+            id: number;
+            /** Is Overdue */
+            is_overdue: boolean;
+            priority: components["schemas"]["Priority"] | null;
+            /** Product Name */
+            product_name: string | null;
+            /** Reference Code */
+            reference_code: string;
+            severity: components["schemas"]["Severity"] | null;
+            status: components["schemas"]["ComplaintStatus"];
+        };
+        /**
+         * ComplaintPage
+         * @description One page of complaints, plus everything the pager needs to render itself.
+         */
+        ComplaintPage: {
+            /** Items */
+            items: components["schemas"]["ComplaintListItem"][];
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+            /**
+             * Pages
+             * @description Total page count; 0 when nothing matches.
+             */
+            pages: number;
+            /**
+             * Total
+             * @description Matching complaints across all pages.
+             */
+            total: number;
+        };
+        /**
+         * ComplaintRead
+         * @description Full complaint as returned by the API.
+         */
+        ComplaintRead: {
+            /** Assigned Investigator Id */
+            assigned_investigator_id?: number | null;
+            /**
+             * Batch Number
+             * @description Batch / lot number as printed on pack.
+             */
+            batch_number?: string | null;
+            /**
+             * Complaint Date
+             * @description Date the complaint was raised by the customer.
+             */
+            complaint_date?: string | null;
+            complaint_type?: components["schemas"]["ComplaintType"] | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created By Id */
+            created_by_id?: number | null;
+            /** Customer Contact */
+            customer_contact?: string | null;
+            /**
+             * Customer Name
+             * @description Reporting customer or institution.
+             */
+            customer_name?: string | null;
+            /**
+             * Description
+             * @description Detailed complaint description.
+             */
+            description?: string | null;
+            dosage_form?: components["schemas"]["DosageForm"] | null;
+            /** Due Date */
+            due_date?: string | null;
+            /** Expiry Date */
+            expiry_date?: string | null;
+            /** Id */
+            id: number;
+            /**
+             * Is Overdue
+             * @default false
+             */
+            is_overdue: boolean;
+            /** Manufacturing Date */
+            manufacturing_date?: string | null;
+            priority?: components["schemas"]["Priority"] | null;
+            /** Product Name */
+            product_name?: string | null;
+            /**
+             * Product Strength
+             * @description Strength or grade, e.g. "500 mg".
+             */
+            product_strength?: string | null;
+            /** Quantity Affected */
+            quantity_affected?: string | null;
+            quantity_unit?: components["schemas"]["QuantityUnit"] | null;
+            /**
+             * Reference Code
+             * @description Human-facing identifier, e.g. "CMP-2026-0042".
+             */
+            reference_code: string;
+            /**
+             * Reporter Name
+             * @description Individual who raised it, if named.
+             */
+            reporter_name?: string | null;
+            severity?: components["schemas"]["Severity"] | null;
+            /** @description How the complaint reached us. */
+            source?: components["schemas"]["ComplaintSource"] | null;
+            status: components["schemas"]["ComplaintStatus"];
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /**
+         * ComplaintSort
+         * @description Orderings the list view offers.
+         *
+         *     Named by intent rather than by column, for two reasons: the UI can render
+         *     the option straight from the value, and severity/priority sort by *rank*
+         *     rather than alphabetically - "critical before major" is not a string
+         *     comparison, and neither is "urgent before high".
+         * @enum {string}
+         */
+        ComplaintSort: "newest" | "oldest" | "severity" | "priority" | "due_date" | "reference";
+        /**
+         * ComplaintSource
+         * @description How the complaint reached us. Drives regulatory reporting obligations.
+         * @enum {string}
+         */
+        ComplaintSource: "email" | "phone" | "customer_portal" | "sales_representative" | "distributor" | "hospital_pharmacy" | "retail_pharmacy" | "regulatory_authority" | "field_alert" | "written_letter" | "other";
+        /**
+         * ComplaintStatus
+         * @description The complaint lifecycle.
+         *
+         *     Legal transitions are defined once in services/workflow.py; this enum only
+         *     names the states.
+         * @enum {string}
+         */
+        ComplaintStatus: "new" | "under_review" | "investigation" | "root_cause_identified" | "capa_required" | "qa_review" | "closed";
+        /**
+         * ComplaintType
+         * @description Pharmaceutical product complaint categories.
+         *
+         *     These map to the defect families a QA team actually triages against; the AI
+         *     classifier is constrained to this list so it cannot invent a category.
+         * @enum {string}
+         */
+        ComplaintType: "appearance_discoloration" | "foreign_matter" | "contamination_microbial" | "contamination_cross" | "packaging_defect" | "labeling_error" | "physical_damage" | "broken_or_chipped" | "odor_or_taste" | "dissolution_failure" | "assay_out_of_specification" | "stability_defect" | "efficacy_complaint" | "adverse_event" | "short_count_or_fill" | "tamper_evidence" | "device_malfunction" | "other";
+        /**
+         * ComplaintUpdate
+         * @description Partial update. Every field optional by construction.
+         *
+         *     Callers must serialise with `exclude_unset=True` so that "not mentioned"
+         *     stays distinct from "explicitly cleared". The AI edit tool depends on this:
+         *     it is the mechanism that preserves unrelated fields.
+         */
+        ComplaintUpdate: {
+            /** Assigned Investigator Id */
+            assigned_investigator_id?: number | null;
+            /** Batch Number */
+            batch_number?: string | null;
+            /** Complaint Date */
+            complaint_date?: string | null;
+            complaint_type?: components["schemas"]["ComplaintType"] | null;
+            /** Customer Contact */
+            customer_contact?: string | null;
+            /** Customer Name */
+            customer_name?: string | null;
+            /** Description */
+            description?: string | null;
+            dosage_form?: components["schemas"]["DosageForm"] | null;
+            /** Due Date */
+            due_date?: string | null;
+            /** Expiry Date */
+            expiry_date?: string | null;
+            /** Manufacturing Date */
+            manufacturing_date?: string | null;
+            priority?: components["schemas"]["Priority"] | null;
+            /** Product Name */
+            product_name?: string | null;
+            /** Product Strength */
+            product_strength?: string | null;
+            /** Quantity Affected */
+            quantity_affected?: number | string | null;
+            quantity_unit?: components["schemas"]["QuantityUnit"] | null;
+            /** Reporter Name */
+            reporter_name?: string | null;
+            severity?: components["schemas"]["Severity"] | null;
+            source?: components["schemas"]["ComplaintSource"] | null;
+        };
+        /**
+         * DosageForm
+         * @description Physical form of the finished drug product (FDF).
+         * @enum {string}
+         */
+        DosageForm: "tablet" | "capsule" | "injection" | "syrup" | "suspension" | "cream" | "ointment" | "gel" | "drops" | "inhaler" | "powder" | "sachet" | "suppository" | "patch" | "other";
+        /**
          * EnumOption
          * @description A selectable option. `label` is display text derived from the value.
          */
@@ -190,6 +607,60 @@ export interface components {
             password: string;
         };
         /**
+         * Priority
+         * @description Handling urgency. Distinct from severity: a MINOR complaint from a key
+         *     account under regulatory scrutiny can still be HIGH priority.
+         * @enum {string}
+         */
+        Priority: "urgent" | "high" | "medium" | "low";
+        /**
+         * QuantityUnit
+         * @description Unit for the affected quantity. The reference UI defaults to KG for API
+         *     material; finished dose forms use countable units.
+         * @enum {string}
+         */
+        QuantityUnit: "tablets" | "capsules" | "vials" | "ampoules" | "bottles" | "blisters" | "sachets" | "tubes" | "boxes" | "cartons" | "units" | "kg" | "g" | "mg" | "l" | "ml";
+        /**
+         * Severity
+         * @description Complaint severity, per standard pharmaceutical quality classification.
+         *
+         *     CRITICAL - may cause death or serious adverse health consequence; candidate
+         *                for recall and regulatory field alert.
+         *     MAJOR    - may cause temporary or medically reversible harm, or is a
+         *                significant GMP/specification failure.
+         *     MINOR    - cosmetic or administrative; no expected health consequence.
+         * @enum {string}
+         */
+        Severity: "critical" | "major" | "minor";
+        /**
+         * StatusTransitionRead
+         * @description One row of the complaint timeline.
+         *
+         *     `from_status` is null on exactly one row per complaint: its creation.
+         */
+        StatusTransitionRead: {
+            /** Changed By Id */
+            changed_by_id: number | null;
+            /**
+             * Changed By Name
+             * @description Resolved server-side so the timeline needs no second call.
+             */
+            changed_by_name?: string | null;
+            /** Complaint Id */
+            complaint_id: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            from_status: components["schemas"]["ComplaintStatus"] | null;
+            /** Id */
+            id: number;
+            /** Reason */
+            reason: string | null;
+            to_status: components["schemas"]["ComplaintStatus"];
+        };
+        /**
          * Token
          * @description OAuth2 bearer token response.
          */
@@ -203,6 +674,45 @@ export interface components {
              * @default bearer
              */
             token_type: string;
+        };
+        /**
+         * TransitionOptionResponse
+         * @description One legal next step, described well enough for a client to render it.
+         */
+        TransitionOptionResponse: {
+            /**
+             * Is Backward
+             * @description Returns the complaint to an earlier stage.
+             */
+            is_backward: boolean;
+            /** Label */
+            label: string;
+            /**
+             * Required Permissions
+             * @description Hide the control unless the current user holds all of these.
+             */
+            required_permissions: string[];
+            /**
+             * Requires Reason
+             * @description A reason is mandatory for this move; the UI must prompt for one.
+             */
+            requires_reason: boolean;
+            /** To Status */
+            to_status: string;
+        };
+        /**
+         * TransitionRequest
+         * @description A requested move through the complaint lifecycle.
+         *
+         *     Legality is decided by `app/services/workflow.py`, never by the client.
+         */
+        TransitionRequest: {
+            /**
+             * Reason
+             * @description Why the complaint is moving. Required when returning it to an earlier stage - an unexplained regression is an audit finding.
+             */
+            reason?: string | null;
+            to_status: components["schemas"]["ComplaintStatus"];
         };
         /**
          * UserCreate
@@ -311,6 +821,29 @@ export interface components {
             severities: components["schemas"]["EnumOption"][];
             /** User Roles */
             user_roles: components["schemas"]["EnumOption"][];
+        };
+        /**
+         * WorkflowResponse
+         * @description The complaint lifecycle, exactly as the server enforces it.
+         */
+        WorkflowResponse: {
+            /**
+             * Lifecycle
+             * @description The statuses in order, for rendering a progress track.
+             */
+            lifecycle: components["schemas"]["EnumOption"][];
+            /**
+             * Terminal Statuses
+             * @description Statuses nothing may follow. Currently only 'closed'.
+             */
+            terminal_statuses: string[];
+            /**
+             * Transitions
+             * @description Legal next steps, keyed by current status.
+             */
+            transitions: {
+                [key: string]: components["schemas"]["TransitionOptionResponse"][];
+            };
         };
     };
     responses: never;
@@ -460,6 +993,256 @@ export interface operations {
             };
         };
     };
+    list_complaints_api_v1_complaints_get: {
+        parameters: {
+            query?: {
+                /** @description Free text, matched against reference code, description, customer, product and batch number. */
+                q?: string | null;
+                status?: components["schemas"]["ComplaintStatus"][];
+                severity?: components["schemas"]["Severity"][];
+                priority?: components["schemas"]["Priority"][];
+                complaint_type?: components["schemas"]["ComplaintType"][];
+                source?: components["schemas"]["ComplaintSource"][];
+                /** @description Substring match. */
+                customer_name?: string | null;
+                /** @description Substring match. */
+                product_name?: string | null;
+                /** @description Substring match. This is the recall question: every complaint on a lot. */
+                batch_number?: string | null;
+                assigned_investigator_id?: number | null;
+                /** @description Only complaints with no investigator. */
+                unassigned_only?: boolean;
+                /** @description Only open complaints past their due date. */
+                overdue_only?: boolean;
+                /** @description Earliest complaint_date, inclusive. */
+                date_from?: string | null;
+                /** @description Latest complaint_date, inclusive. */
+                date_to?: string | null;
+                sort?: components["schemas"]["ComplaintSort"];
+                page?: number;
+                /** @description Capped so one call cannot pull the table. */
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ComplaintPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_complaint_api_v1_complaints_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ComplaintCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ComplaintRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_complaint_api_v1_complaints__complaint_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                complaint_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ComplaintRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_complaint_api_v1_complaints__complaint_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                complaint_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_complaint_api_v1_complaints__complaint_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                complaint_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ComplaintUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ComplaintRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    transition_complaint_api_v1_complaints__complaint_id__transition_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                complaint_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TransitionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ComplaintRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    complaint_timeline_api_v1_complaints__complaint_id__transitions_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                complaint_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StatusTransitionRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_vocabulary_api_v1_meta_vocabulary_get: {
         parameters: {
             query?: never;
@@ -476,6 +1259,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["VocabularyResponse"];
+                };
+            };
+        };
+    };
+    get_workflow_api_v1_meta_workflow_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkflowResponse"];
                 };
             };
         };

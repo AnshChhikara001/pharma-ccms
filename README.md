@@ -106,8 +106,8 @@ Built in phases; each lands as its own pull request.
 |---|---|---|
 | 0 | Foundation, domain contract, CI, subagents | ✅ Complete |
 | 1 | Data model, JWT auth, RBAC, audit trail | ✅ Complete |
-| 2 | Complaint CRUD, filters, workflow engine, seed data | ⏳ Next |
-| 3 | LangGraph AI layer + cost governor | ⏳ |
+| 2 | Complaint CRUD, filters, workflow engine, seed data | ✅ Complete |
+| 3 | LangGraph AI layer + cost governor | ⏳ Next |
 | 4 | AI-first intake screen | ⏳ |
 | 5 | Complaint list + investigation workspace | ⏳ |
 | 6 | Dashboard + AI intelligence | ⏳ |
@@ -145,3 +145,27 @@ Every change to a complaint, investigation, root cause, CAPA or user is recorded
 automatically by SQLAlchemy event listeners — **no endpoint writes audit entries**,
 so none can forget to. Password hashes are redacted, and entries survive deletion
 of the row they describe.
+
+## Complaints API
+
+`/api/v1/complaints` is a full CRUD surface plus the workflow:
+
+| | |
+|---|---|
+| `GET /complaints` | Search — free text, status/severity/priority/type/source (repeatable, OR'd), customer/product/batch substring, unassigned-only, overdue-only, a date range, six sort orders, paginated |
+| `POST /complaints` | Log a complaint. Allocates its reference code (`CMP-2026-0042`) and opens the timeline |
+| `GET /complaints/{id}` · `PATCH /complaints/{id}` · `DELETE /complaints/{id}` | `PATCH` is a true partial update (`exclude_unset=True`); `DELETE` only works while a complaint is still `new` — anything further along is closed with a reason instead |
+| `POST /complaints/{id}/transition` · `GET /complaints/{id}/transitions` | Move the complaint and read its timeline |
+| `GET /meta/workflow` | The transition table itself, so the UI's buttons are derived from the same rule the server enforces, never a second copy of it |
+
+`batch_number` is the recall question — every complaint logged against a given
+lot, across every customer that reported it. Two things happen automatically on
+every write: the free-text customer/product/batch a complainant gave are
+resolved to reference-data rows when a confident match exists (the text is kept
+either way, so nothing is lost when nothing matches yet), and the merged result
+is re-validated against the full contract, so a partial edit can never leave a
+complaint in a state the create path would have rejected.
+
+Demo data — ten customers, twelve products, twenty-six batches and twenty-six
+complaints spanning every lifecycle status — loads via `python -m seeds.run`,
+safe to re-run.

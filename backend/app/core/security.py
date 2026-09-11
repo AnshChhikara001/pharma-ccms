@@ -55,6 +55,7 @@ def verify_password(plain: str, hashed: str) -> bool:
 def create_access_token(
     subject: str | int,
     role: str,
+    email: str | None = None,
     expires_delta: timedelta | None = None,
 ) -> str:
     """Issue a signed JWT.
@@ -62,6 +63,11 @@ def create_access_token(
     `role` is embedded so permission checks need no database round trip, but it
     is always re-validated against the live user record in `get_current_user` -
     a token issued before a role change must not outrank the current one.
+
+    `email` is embedded for the same reason `role` is: `AuditContextMiddleware`
+    reads it straight off the token to attribute an audit entry, and a
+    middleware has no business opening a database session just to label who
+    made a change.
     """
     expire = datetime.now(UTC) + (
         expires_delta or timedelta(minutes=settings.access_token_expire_minutes)
@@ -69,6 +75,7 @@ def create_access_token(
     payload: dict[str, Any] = {
         "sub": str(subject),
         "role": role,
+        "email": email,
         "exp": expire,
         "iat": datetime.now(UTC),
         "type": "access",

@@ -60,6 +60,1007 @@
         "title": "Body_login_api_v1_auth_login_post",
         "type": "object"
       },
+      "ComplaintCreate": {
+        "description": "Creation payload. Description is the one field we insist on - a complaint\nwith no narrative is not triageable, and the AI can derive most of the rest\nfrom it.",
+        "properties": {
+          "assigned_investigator_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assigned Investigator Id"
+          },
+          "batch_number": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Batch / lot number as printed on pack.",
+            "title": "Batch Number"
+          },
+          "complaint_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Date the complaint was raised by the customer.",
+            "title": "Complaint Date"
+          },
+          "complaint_type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ComplaintType"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "customer_contact": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Customer Contact"
+          },
+          "customer_name": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Reporting customer or institution.",
+            "title": "Customer Name"
+          },
+          "description": {
+            "maxLength": 8000,
+            "minLength": 10,
+            "title": "Description",
+            "type": "string"
+          },
+          "dosage_form": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DosageForm"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "due_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Due Date"
+          },
+          "expiry_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expiry Date"
+          },
+          "manufacturing_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Manufacturing Date"
+          },
+          "priority": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Priority"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "product_name": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Product Name"
+          },
+          "product_strength": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Strength or grade, e.g. \"500 mg\".",
+            "title": "Product Strength"
+          },
+          "quantity_affected": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,9}|(?=[\\d.]{1,13}0*$)\\d{0,9}\\.\\d{0,3}0*$)",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quantity Affected"
+          },
+          "quantity_unit": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/QuantityUnit"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "reporter_name": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Individual who raised it, if named.",
+            "title": "Reporter Name"
+          },
+          "severity": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Severity"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "source": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ComplaintSource"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "How the complaint reached us."
+          }
+        },
+        "required": [
+          "description"
+        ],
+        "title": "ComplaintCreate",
+        "type": "object"
+      },
+      "ComplaintListItem": {
+        "description": "Trimmed projection for the list view.\n\nSeparate from ComplaintRead on purpose: the list renders up to 50 rows and\nhas no use for the 8 KB description field.",
+        "properties": {
+          "assigned_investigator_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assigned Investigator Id"
+          },
+          "batch_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Batch Number"
+          },
+          "complaint_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Complaint Date"
+          },
+          "complaint_type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ComplaintType"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "customer_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Customer Name"
+          },
+          "due_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Due Date"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "is_overdue": {
+            "title": "Is Overdue",
+            "type": "boolean"
+          },
+          "priority": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Priority"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "product_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Product Name"
+          },
+          "reference_code": {
+            "title": "Reference Code",
+            "type": "string"
+          },
+          "severity": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Severity"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "$ref": "#/components/schemas/ComplaintStatus"
+          }
+        },
+        "required": [
+          "id",
+          "reference_code",
+          "customer_name",
+          "product_name",
+          "batch_number",
+          "complaint_type",
+          "status",
+          "severity",
+          "priority",
+          "complaint_date",
+          "due_date",
+          "assigned_investigator_id",
+          "is_overdue",
+          "created_at"
+        ],
+        "title": "ComplaintListItem",
+        "type": "object"
+      },
+      "ComplaintPage": {
+        "description": "One page of complaints, plus everything the pager needs to render itself.",
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ComplaintListItem"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "page": {
+            "title": "Page",
+            "type": "integer"
+          },
+          "page_size": {
+            "title": "Page Size",
+            "type": "integer"
+          },
+          "pages": {
+            "description": "Total page count; 0 when nothing matches.",
+            "title": "Pages",
+            "type": "integer"
+          },
+          "total": {
+            "description": "Matching complaints across all pages.",
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "page",
+          "page_size",
+          "pages"
+        ],
+        "title": "ComplaintPage",
+        "type": "object"
+      },
+      "ComplaintRead": {
+        "description": "Full complaint as returned by the API.",
+        "properties": {
+          "assigned_investigator_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assigned Investigator Id"
+          },
+          "batch_number": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Batch / lot number as printed on pack.",
+            "title": "Batch Number"
+          },
+          "complaint_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Date the complaint was raised by the customer.",
+            "title": "Complaint Date"
+          },
+          "complaint_type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ComplaintType"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "created_by_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By Id"
+          },
+          "customer_contact": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Customer Contact"
+          },
+          "customer_name": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Reporting customer or institution.",
+            "title": "Customer Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "maxLength": 8000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Detailed complaint description.",
+            "title": "Description"
+          },
+          "dosage_form": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DosageForm"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "due_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Due Date"
+          },
+          "expiry_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expiry Date"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "is_overdue": {
+            "default": false,
+            "title": "Is Overdue",
+            "type": "boolean"
+          },
+          "manufacturing_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Manufacturing Date"
+          },
+          "priority": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Priority"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "product_name": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Product Name"
+          },
+          "product_strength": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Strength or grade, e.g. \"500 mg\".",
+            "title": "Product Strength"
+          },
+          "quantity_affected": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,9}|(?=[\\d.]{1,13}0*$)\\d{0,9}\\.\\d{0,3}0*$)",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quantity Affected"
+          },
+          "quantity_unit": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/QuantityUnit"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "reference_code": {
+            "description": "Human-facing identifier, e.g. \"CMP-2026-0042\".",
+            "title": "Reference Code",
+            "type": "string"
+          },
+          "reporter_name": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Individual who raised it, if named.",
+            "title": "Reporter Name"
+          },
+          "severity": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Severity"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "source": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ComplaintSource"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "How the complaint reached us."
+          },
+          "status": {
+            "$ref": "#/components/schemas/ComplaintStatus"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "reference_code",
+          "status",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "ComplaintRead",
+        "type": "object"
+      },
+      "ComplaintSort": {
+        "description": "Orderings the list view offers.\n\nNamed by intent rather than by column, for two reasons: the UI can render\nthe option straight from the value, and severity/priority sort by *rank*\nrather than alphabetically - \"critical before major\" is not a string\ncomparison, and neither is \"urgent before high\".",
+        "enum": [
+          "newest",
+          "oldest",
+          "severity",
+          "priority",
+          "due_date",
+          "reference"
+        ],
+        "title": "ComplaintSort",
+        "type": "string"
+      },
+      "ComplaintSource": {
+        "description": "How the complaint reached us. Drives regulatory reporting obligations.",
+        "enum": [
+          "email",
+          "phone",
+          "customer_portal",
+          "sales_representative",
+          "distributor",
+          "hospital_pharmacy",
+          "retail_pharmacy",
+          "regulatory_authority",
+          "field_alert",
+          "written_letter",
+          "other"
+        ],
+        "title": "ComplaintSource",
+        "type": "string"
+      },
+      "ComplaintStatus": {
+        "description": "The complaint lifecycle.\n\nLegal transitions are defined once in services/workflow.py; this enum only\nnames the states.",
+        "enum": [
+          "new",
+          "under_review",
+          "investigation",
+          "root_cause_identified",
+          "capa_required",
+          "qa_review",
+          "closed"
+        ],
+        "title": "ComplaintStatus",
+        "type": "string"
+      },
+      "ComplaintType": {
+        "description": "Pharmaceutical product complaint categories.\n\nThese map to the defect families a QA team actually triages against; the AI\nclassifier is constrained to this list so it cannot invent a category.",
+        "enum": [
+          "appearance_discoloration",
+          "foreign_matter",
+          "contamination_microbial",
+          "contamination_cross",
+          "packaging_defect",
+          "labeling_error",
+          "physical_damage",
+          "broken_or_chipped",
+          "odor_or_taste",
+          "dissolution_failure",
+          "assay_out_of_specification",
+          "stability_defect",
+          "efficacy_complaint",
+          "adverse_event",
+          "short_count_or_fill",
+          "tamper_evidence",
+          "device_malfunction",
+          "other"
+        ],
+        "title": "ComplaintType",
+        "type": "string"
+      },
+      "ComplaintUpdate": {
+        "description": "Partial update. Every field optional by construction.\n\nCallers must serialise with `exclude_unset=True` so that \"not mentioned\"\nstays distinct from \"explicitly cleared\". The AI edit tool depends on this:\nit is the mechanism that preserves unrelated fields.",
+        "properties": {
+          "assigned_investigator_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assigned Investigator Id"
+          },
+          "batch_number": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Batch Number"
+          },
+          "complaint_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Complaint Date"
+          },
+          "complaint_type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ComplaintType"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "customer_contact": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Customer Contact"
+          },
+          "customer_name": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Customer Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "maxLength": 8000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "dosage_form": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DosageForm"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "due_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Due Date"
+          },
+          "expiry_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expiry Date"
+          },
+          "manufacturing_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Manufacturing Date"
+          },
+          "priority": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Priority"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "product_name": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Product Name"
+          },
+          "product_strength": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Product Strength"
+          },
+          "quantity_affected": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quantity Affected"
+          },
+          "quantity_unit": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/QuantityUnit"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "reporter_name": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reporter Name"
+          },
+          "severity": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Severity"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "source": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ComplaintSource"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "title": "ComplaintUpdate",
+        "type": "object"
+      },
+      "DosageForm": {
+        "description": "Physical form of the finished drug product (FDF).",
+        "enum": [
+          "tablet",
+          "capsule",
+          "injection",
+          "syrup",
+          "suspension",
+          "cream",
+          "ointment",
+          "gel",
+          "drops",
+          "inhaler",
+          "powder",
+          "sachet",
+          "suppository",
+          "patch",
+          "other"
+        ],
+        "title": "DosageForm",
+        "type": "string"
+      },
       "EnumOption": {
         "description": "A selectable option. `label` is display text derived from the value.",
         "properties": {
@@ -112,6 +1113,126 @@
         "title": "LoginRequest",
         "type": "object"
       },
+      "Priority": {
+        "description": "Handling urgency. Distinct from severity: a MINOR complaint from a key\naccount under regulatory scrutiny can still be HIGH priority.",
+        "enum": [
+          "urgent",
+          "high",
+          "medium",
+          "low"
+        ],
+        "title": "Priority",
+        "type": "string"
+      },
+      "QuantityUnit": {
+        "description": "Unit for the affected quantity. The reference UI defaults to KG for API\nmaterial; finished dose forms use countable units.",
+        "enum": [
+          "tablets",
+          "capsules",
+          "vials",
+          "ampoules",
+          "bottles",
+          "blisters",
+          "sachets",
+          "tubes",
+          "boxes",
+          "cartons",
+          "units",
+          "kg",
+          "g",
+          "mg",
+          "l",
+          "ml"
+        ],
+        "title": "QuantityUnit",
+        "type": "string"
+      },
+      "Severity": {
+        "description": "Complaint severity, per standard pharmaceutical quality classification.\n\nCRITICAL - may cause death or serious adverse health consequence; candidate\n           for recall and regulatory field alert.\nMAJOR    - may cause temporary or medically reversible harm, or is a\n           significant GMP/specification failure.\nMINOR    - cosmetic or administrative; no expected health consequence.",
+        "enum": [
+          "critical",
+          "major",
+          "minor"
+        ],
+        "title": "Severity",
+        "type": "string"
+      },
+      "StatusTransitionRead": {
+        "description": "One row of the complaint timeline.\n\n`from_status` is null on exactly one row per complaint: its creation.",
+        "properties": {
+          "changed_by_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Changed By Id"
+          },
+          "changed_by_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Resolved server-side so the timeline needs no second call.",
+            "title": "Changed By Name"
+          },
+          "complaint_id": {
+            "title": "Complaint Id",
+            "type": "integer"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "from_status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ComplaintStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "to_status": {
+            "$ref": "#/components/schemas/ComplaintStatus"
+          }
+        },
+        "required": [
+          "id",
+          "complaint_id",
+          "from_status",
+          "to_status",
+          "changed_by_id",
+          "reason",
+          "created_at"
+        ],
+        "title": "StatusTransitionRead",
+        "type": "object"
+      },
       "Token": {
         "description": "OAuth2 bearer token response.",
         "properties": {
@@ -134,6 +1255,72 @@
           "expires_in_minutes"
         ],
         "title": "Token",
+        "type": "object"
+      },
+      "TransitionOptionResponse": {
+        "description": "One legal next step, described well enough for a client to render it.",
+        "properties": {
+          "is_backward": {
+            "description": "Returns the complaint to an earlier stage.",
+            "title": "Is Backward",
+            "type": "boolean"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "required_permissions": {
+            "description": "Hide the control unless the current user holds all of these.",
+            "items": {
+              "type": "string"
+            },
+            "title": "Required Permissions",
+            "type": "array"
+          },
+          "requires_reason": {
+            "description": "A reason is mandatory for this move; the UI must prompt for one.",
+            "title": "Requires Reason",
+            "type": "boolean"
+          },
+          "to_status": {
+            "title": "To Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "to_status",
+          "label",
+          "requires_reason",
+          "required_permissions",
+          "is_backward"
+        ],
+        "title": "TransitionOptionResponse",
+        "type": "object"
+      },
+      "TransitionRequest": {
+        "description": "A requested move through the complaint lifecycle.\n\nLegality is decided by `app/services/workflow.py`, never by the client.",
+        "properties": {
+          "reason": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Why the complaint is moving. Required when returning it to an earlier stage - an unexplained regression is an audit finding.",
+            "title": "Reason"
+          },
+          "to_status": {
+            "$ref": "#/components/schemas/ComplaintStatus"
+          }
+        },
+        "required": [
+          "to_status"
+        ],
+        "title": "TransitionRequest",
         "type": "object"
       },
       "UserCreate": {
@@ -410,6 +1597,45 @@
         ],
         "title": "VocabularyResponse",
         "type": "object"
+      },
+      "WorkflowResponse": {
+        "description": "The complaint lifecycle, exactly as the server enforces it.",
+        "properties": {
+          "lifecycle": {
+            "description": "The statuses in order, for rendering a progress track.",
+            "items": {
+              "$ref": "#/components/schemas/EnumOption"
+            },
+            "title": "Lifecycle",
+            "type": "array"
+          },
+          "terminal_statuses": {
+            "description": "Statuses nothing may follow. Currently only 'closed'.",
+            "items": {
+              "type": "string"
+            },
+            "title": "Terminal Statuses",
+            "type": "array"
+          },
+          "transitions": {
+            "additionalProperties": {
+              "items": {
+                "$ref": "#/components/schemas/TransitionOptionResponse"
+              },
+              "type": "array"
+            },
+            "description": "Legal next steps, keyed by current status.",
+            "title": "Transitions",
+            "type": "object"
+          }
+        },
+        "required": [
+          "lifecycle",
+          "transitions",
+          "terminal_statuses"
+        ],
+        "title": "WorkflowResponse",
+        "type": "object"
       }
     },
     "securitySchemes": {
@@ -618,6 +1844,590 @@
         ]
       }
     },
+    "/api/v1/complaints": {
+      "get": {
+        "description": "The complaint queue, filtered and paged.\n\nEvery filter is optional and they compose; `batch_number` is the one that\nanswers the recall question - every complaint logged against a given lot.",
+        "operationId": "list_complaints_api_v1_complaints_get",
+        "parameters": [
+          {
+            "description": "Free text, matched against reference code, description, customer, product and batch number.",
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 200,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Free text, matched against reference code, description, customer, product and batch number.",
+              "title": "Q"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "items": {
+                "$ref": "#/components/schemas/ComplaintStatus"
+              },
+              "title": "Status",
+              "type": "array"
+            }
+          },
+          {
+            "in": "query",
+            "name": "severity",
+            "required": false,
+            "schema": {
+              "items": {
+                "$ref": "#/components/schemas/Severity"
+              },
+              "title": "Severity",
+              "type": "array"
+            }
+          },
+          {
+            "in": "query",
+            "name": "priority",
+            "required": false,
+            "schema": {
+              "items": {
+                "$ref": "#/components/schemas/Priority"
+              },
+              "title": "Priority",
+              "type": "array"
+            }
+          },
+          {
+            "in": "query",
+            "name": "complaint_type",
+            "required": false,
+            "schema": {
+              "items": {
+                "$ref": "#/components/schemas/ComplaintType"
+              },
+              "title": "Complaint Type",
+              "type": "array"
+            }
+          },
+          {
+            "in": "query",
+            "name": "source",
+            "required": false,
+            "schema": {
+              "items": {
+                "$ref": "#/components/schemas/ComplaintSource"
+              },
+              "title": "Source",
+              "type": "array"
+            }
+          },
+          {
+            "description": "Substring match.",
+            "in": "query",
+            "name": "customer_name",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 200,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Substring match.",
+              "title": "Customer Name"
+            }
+          },
+          {
+            "description": "Substring match.",
+            "in": "query",
+            "name": "product_name",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 200,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Substring match.",
+              "title": "Product Name"
+            }
+          },
+          {
+            "description": "Substring match. This is the recall question: every complaint on a lot.",
+            "in": "query",
+            "name": "batch_number",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 100,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Substring match. This is the recall question: every complaint on a lot.",
+              "title": "Batch Number"
+            }
+          },
+          {
+            "in": "query",
+            "name": "assigned_investigator_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Assigned Investigator Id"
+            }
+          },
+          {
+            "description": "Only complaints with no investigator.",
+            "in": "query",
+            "name": "unassigned_only",
+            "required": false,
+            "schema": {
+              "default": false,
+              "description": "Only complaints with no investigator.",
+              "title": "Unassigned Only",
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "Only open complaints past their due date.",
+            "in": "query",
+            "name": "overdue_only",
+            "required": false,
+            "schema": {
+              "default": false,
+              "description": "Only open complaints past their due date.",
+              "title": "Overdue Only",
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "Earliest complaint_date, inclusive.",
+            "in": "query",
+            "name": "date_from",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Earliest complaint_date, inclusive.",
+              "title": "Date From"
+            }
+          },
+          {
+            "description": "Latest complaint_date, inclusive.",
+            "in": "query",
+            "name": "date_to",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Latest complaint_date, inclusive.",
+              "title": "Date To"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sort",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/ComplaintSort",
+              "default": "newest"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "minimum": 1,
+              "title": "Page",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Capped so one call cannot pull the table.",
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "default": 25,
+              "description": "Capped so one call cannot pull the table.",
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Page Size",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ComplaintPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Search complaints",
+        "tags": [
+          "complaints"
+        ]
+      },
+      "post": {
+        "description": "Create a complaint in `new`, with its reference code and timeline started.\n\nAssigning an investigator at intake is allowed but needs the same permission\na later reassignment does.",
+        "operationId": "create_complaint_api_v1_complaints_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ComplaintCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ComplaintRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Log a complaint",
+        "tags": [
+          "complaints"
+        ]
+      }
+    },
+    "/api/v1/complaints/{complaint_id}": {
+      "delete": {
+        "description": "Delete an untriaged complaint - a duplicate or a mis-entry.\n\nOnly possible while the complaint is still `new`. Anything further along has\nbecome part of the quality record and must be closed with a reason instead.\nThe audit trail keeps a full snapshot of whatever is removed.",
+        "operationId": "delete_complaint_api_v1_complaints__complaint_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "complaint_id",
+            "required": true,
+            "schema": {
+              "title": "Complaint Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Delete a complaint",
+        "tags": [
+          "complaints"
+        ]
+      },
+      "get": {
+        "operationId": "get_complaint_api_v1_complaints__complaint_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "complaint_id",
+            "required": true,
+            "schema": {
+              "title": "Complaint Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ComplaintRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Get a complaint",
+        "tags": [
+          "complaints"
+        ]
+      },
+      "patch": {
+        "description": "Partial update. Fields not mentioned are not touched.\n\nTwo extra rules are enforced here rather than in the service, because both\nare about *who is asking*:\n\n* Changing the assigned investigator additionally requires COMPLAINT_ASSIGN.\n  `assigned_investigator_id` is an editable field like any other, so without\n  this an investigator holding only COMPLAINT_UPDATE could reassign their\n  own work and the separate permission would mean nothing.\n* A closed complaint is a signed-off record and is not editable. Reopening\n  is deliberately impossible - see services/workflow.py.",
+        "operationId": "update_complaint_api_v1_complaints__complaint_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "complaint_id",
+            "required": true,
+            "schema": {
+              "title": "Complaint Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ComplaintUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ComplaintRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Update a complaint",
+        "tags": [
+          "complaints"
+        ]
+      }
+    },
+    "/api/v1/complaints/{complaint_id}/transition": {
+      "post": {
+        "description": "Advance or return a complaint.\n\nLegality comes from the table in `services/workflow.py`; this handler only\nsupplies the permission check that depends on the *target* - closing needs\nWORKFLOW_CLOSE, which only QA managers and admins hold.",
+        "operationId": "transition_complaint_api_v1_complaints__complaint_id__transition_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "complaint_id",
+            "required": true,
+            "schema": {
+              "title": "Complaint Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransitionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ComplaintRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Move a complaint through the workflow",
+        "tags": [
+          "complaints"
+        ]
+      }
+    },
+    "/api/v1/complaints/{complaint_id}/transitions": {
+      "get": {
+        "description": "Every status change, oldest first. The first row records creation and has\na null `from_status`.",
+        "operationId": "complaint_timeline_api_v1_complaints__complaint_id__transitions_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "complaint_id",
+            "required": true,
+            "schema": {
+              "title": "Complaint Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/StatusTransitionRead"
+                  },
+                  "title": "Response Complaint Timeline Api V1 Complaints  Complaint Id  Transitions Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Complaint timeline",
+        "tags": [
+          "complaints"
+        ]
+      }
+    },
     "/api/v1/meta/vocabulary": {
       "get": {
         "description": "Single source of dropdown options for the entire frontend.",
@@ -635,6 +2445,28 @@
           }
         },
         "summary": "All domain enums",
+        "tags": [
+          "meta"
+        ]
+      }
+    },
+    "/api/v1/meta/workflow": {
+      "get": {
+        "description": "Serve the transition table so the UI never hard-codes the lifecycle.\n\nThe buttons a user sees are derived from the same table\n`services/workflow.py` validates against, which is what stops the frontend\nfrom offering a move the server will reject - or hiding one it would allow.",
+        "operationId": "get_workflow_api_v1_meta_workflow_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "The lifecycle table",
         "tags": [
           "meta"
         ]

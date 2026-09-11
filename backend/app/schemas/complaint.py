@@ -25,6 +25,7 @@ from __future__ import annotations
 
 from datetime import date, datetime
 from decimal import Decimal
+from enum import StrEnum
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
@@ -193,6 +194,137 @@ class ComplaintListItem(BaseModel):
     due_date: date | None
     assigned_investigator_id: int | None
     is_overdue: bool
+    created_at: datetime
+
+
+# ── Listing, filtering and pagination ─────────────────────────────────────────
+
+
+class ComplaintSort(StrEnum):
+    """Orderings the list view offers.
+
+    Named by intent rather than by column, for two reasons: the UI can render
+    the option straight from the value, and severity/priority sort by *rank*
+    rather than alphabetically - "critical before major" is not a string
+    comparison, and neither is "urgent before high".
+    """
+
+    NEWEST = "newest"
+    OLDEST = "oldest"
+    SEVERITY = "severity"
+    PRIORITY = "priority"
+    DUE_DATE = "due_date"
+    REFERENCE = "reference"
+
+
+class ComplaintFilters(BaseModel):
+    """Query parameters for the complaint list.
+
+    Bound as a FastAPI query-parameter model, so every field below appears in
+    the OpenAPI spec and reaches the generated frontend types like anything
+    else. `extra="forbid"` makes a misspelled filter a 422 rather than a
+    silently ignored parameter that quietly returns the wrong rows - which, in
+    a system used to decide on recalls, is the worse failure by a wide margin.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    q: str | None = Field(
+        None,
+        max_length=200,
+        description=(
+            "Free text, matched against reference code, description, customer, "
+            "product and batch number."
+        ),
+    )
+
+    # Repeatable, and OR'd within a field: ?status=new&status=under_review
+    # means "either of these". Different fields are AND'd.
+    status: list[ComplaintStatus] = Field(default_factory=list)
+    severity: list[Severity] = Field(default_factory=list)
+    priority: list[Priority] = Field(default_factory=list)
+    complaint_type: list[ComplaintType] = Field(default_factory=list)
+    source: list[ComplaintSource] = Field(default_factory=list)
+
+    customer_name: str | None = Field(None, max_length=200, description="Substring match.")
+    product_name: str | None = Field(None, max_length=200, description="Substring match.")
+    batch_number: str | None = Field(
+        None,
+        max_length=100,
+        description="Substring match. This is the recall question: every complaint on a lot.",
+    )
+
+    assigned_investigator_id: int | None = None
+    unassigned_only: bool = Field(False, description="Only complaints with no investigator.")
+    overdue_only: bool = Field(False, description="Only open complaints past their due date.")
+
+    date_from: date | None = Field(None, description="Earliest complaint_date, inclusive.")
+    date_to: date | None = Field(None, description="Latest complaint_date, inclusive.")
+
+    sort: ComplaintSort = ComplaintSort.NEWEST
+    page: int = Field(1, ge=1)
+    page_size: int = Field(
+        25, ge=1, le=100, description="Capped so one call cannot pull the table."
+    )
+
+    @model_validator(mode="after")
+    def _range_is_ordered(self) -> ComplaintFilters:
+        if (
+            self.date_from is not None
+            and self.date_to is not None
+            and self.date_to < self.date_from
+        ):
+            raise ValueError("date_to cannot be earlier than date_from")
+        return self
+
+
+class ComplaintPage(BaseModel):
+    """One page of complaints, plus everything the pager needs to render itself."""
+
+    items: list[ComplaintListItem]
+    total: int = Field(..., description="Matching complaints across all pages.")
+    page: int
+    page_size: int
+    pages: int = Field(..., description="Total page count; 0 when nothing matches.")
+
+
+# ── Workflow ──────────────────────────────────────────────────────────────────
+
+
+class TransitionRequest(BaseModel):
+    """A requested move through the complaint lifecycle.
+
+    Legality is decided by `app/services/workflow.py`, never by the client.
+    """
+
+    to_status: ComplaintStatus
+    reason: str | None = Field(
+        None,
+        max_length=2000,
+        description=(
+            "Why the complaint is moving. Required when returning it to an "
+            "earlier stage - an unexplained regression is an audit finding."
+        ),
+    )
+
+
+class StatusTransitionRead(BaseModel):
+    """One row of the complaint timeline.
+
+    `from_status` is null on exactly one row per complaint: its creation.
+    """
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    complaint_id: int
+    from_status: ComplaintStatus | None
+    to_status: ComplaintStatus
+    changed_by_id: int | None
+    changed_by_name: str | None = Field(
+        None, description="Resolved server-side so the timeline needs no second call."
+    )
+    reason: str | None
     created_at: datetime
 
 

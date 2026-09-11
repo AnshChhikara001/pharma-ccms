@@ -50,6 +50,16 @@ def test_token_carries_subject_and_role() -> None:
     assert payload["role"] == "qa_manager"
 
 
+def test_token_carries_email_for_audit_attribution() -> None:
+    """AuditContextMiddleware reads this claim straight off the token to
+    attribute an audit entry, without a database round trip."""
+    payload = decode_access_token(
+        create_access_token(42, "qa_manager", email="qa.manager@pharmaco.com")
+    )
+    assert payload is not None
+    assert payload["email"] == "qa.manager@pharmaco.com"
+
+
 def test_tampered_token_is_rejected() -> None:
     token = create_access_token(1, "admin")
     assert decode_access_token(token[:-3] + "abc") is None
