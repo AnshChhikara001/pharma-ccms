@@ -9,8 +9,14 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1.router import api_router
 from app.core.config import get_settings
+from app.core.middleware import AuditContextMiddleware
+from app.services.audit import install_audit_listeners
 
 settings = get_settings()
+
+# Attach the audit-trail listeners before any session exists, so no mutation
+# can ever occur outside their view.
+install_audit_listeners()
 
 app = FastAPI(
     title=settings.app_name,
@@ -23,6 +29,10 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc",
 )
+
+# Order matters: middleware added last runs first. AuditContextMiddleware must
+# wrap the request before any handler opens a database session.
+app.add_middleware(AuditContextMiddleware)
 
 app.add_middleware(
     CORSMiddleware,

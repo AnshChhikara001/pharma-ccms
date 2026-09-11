@@ -26,6 +26,10 @@ dist-ssr/
 backend/.ai_cache/
 backend/ai_spend.json
 
+# Local test database
+backend/test_ccms.db
+backend/*.db
+
 # Uploads
 backend/uploads/
 
