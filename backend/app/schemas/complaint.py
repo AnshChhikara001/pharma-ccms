@@ -160,6 +160,53 @@ class ComplaintUpdate(BaseModel):
     due_date: date | None = None
 
 
+class ComplaintFieldChanges(BaseModel):
+    """Output-only mirror of `ComplaintUpdate`'s fields, for use in AI response bodies.
+
+    `ComplaintUpdate` must stay a request-only shape. FastAPI/Pydantic
+    generate split `<Model>-Input` / `<Model>-Output` variants in the OpenAPI
+    document for any model that appears in both a request body and a response
+    body *if* a field's accepted input type differs from its serialized
+    output type - which `quantity_affected: Decimal | None` does (it accepts
+    `number | string | null` on input but always serialises as `string |
+    null` on output). `ComplaintUpdate` is load-bearing as the request body
+    of `PATCH /api/v1/complaints/{id}`; putting it in a response as well
+    would split the single `components['schemas']['ComplaintUpdate']` the
+    frontend's generated types depend on
+    (`frontend/src/features/complaints/types.ts`).
+
+    This class exists purely so a response can describe "the fields that
+    would change" (or were extracted) without putting `ComplaintUpdate` in a
+    response position at all. Its field list must match `ComplaintUpdate`'s
+    exactly - `tests/test_ai_tools.py::test_complaint_field_changes_mirrors_complaint_update`
+    asserts that, the same way `tests/test_model_contract_parity.py` pins the
+    ORM and Pydantic sides of the complaint shape together elsewhere in this
+    codebase.
+    """
+
+    model_config = ConfigDict(from_attributes=True)
+
+    source: ComplaintSource | None = None
+    customer_name: str | None = None
+    customer_contact: str | None = None
+    reporter_name: str | None = None
+    product_name: str | None = None
+    product_strength: str | None = None
+    dosage_form: DosageForm | None = None
+    batch_number: str | None = None
+    manufacturing_date: date | None = None
+    expiry_date: date | None = None
+    quantity_affected: Decimal | None = None
+    quantity_unit: QuantityUnit | None = None
+    complaint_type: ComplaintType | None = None
+    complaint_date: date | None = None
+    description: str | None = None
+    severity: Severity | None = None
+    priority: Priority | None = None
+    assigned_investigator_id: int | None = None
+    due_date: date | None = None
+
+
 class ComplaintRead(ComplaintBase):
     """Full complaint as returned by the API."""
 
@@ -358,8 +405,8 @@ class ExtractedComplaint(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-    fields: ComplaintUpdate = Field(
-        default_factory=ComplaintUpdate,
+    fields: ComplaintFieldChanges = Field(
+        default_factory=ComplaintFieldChanges,
         description="Only the fields actually found in the input.",
     )
     provenance: list[FieldProvenance] = Field(default_factory=list)

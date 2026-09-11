@@ -44,6 +44,24 @@ def _assert_never_live() -> None:
 
 
 @pytest.fixture(autouse=True)
+def _isolated_ai_ledger(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Redirect the AI spend ledger and response cache to a throwaway
+    directory for every test.
+
+    Without this, a test that exercises `app/ai/tools/*` would read and write
+    the real `backend/ai_spend.json` / `backend/.ai_cache/` that a developer's
+    own `uvicorn` run uses - correct in isolation, but it would leave the test
+    suite's spend history entangled with a human's, and a test order that
+    happens to accumulate spend could make an unrelated later test see a
+    non-zero starting balance. Each test gets its own empty ledger instead.
+    """
+    from app.ai import budget
+
+    monkeypatch.setattr(budget, "_LEDGER_PATH", tmp_path / "ai_spend.json")
+    monkeypatch.setattr(budget, "_CACHE_DIR", tmp_path / ".ai_cache")
+
+
+@pytest.fixture(autouse=True)
 def _fresh_schema() -> Generator[None, None, None]:
     """Rebuild the schema around every test.
 

@@ -1,6 +1,141 @@
 {
   "components": {
     "schemas": {
+      "AIAssessment": {
+        "description": "The AI's read on a complaint.\n\nEvery consumer must render this behind an explicit advisory label. These are\nrecommendations to a qualified reviewer, never confirmed regulatory\ndeterminations or established root causes.",
+        "properties": {
+          "capa_recommendations": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Capa Recommendations",
+            "type": "array"
+          },
+          "completeness_score": {
+            "description": "Percentage of triage-critical fields present.",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Completeness Score",
+            "type": "integer"
+          },
+          "disclaimer": {
+            "default": "AI-generated recommendation. Not a confirmed root cause or regulatory decision. Must be reviewed and approved by qualified QA personnel.",
+            "description": "Rendered verbatim wherever this assessment is shown.",
+            "title": "Disclaimer",
+            "type": "string"
+          },
+          "investigation_steps": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Investigation Steps",
+            "type": "array"
+          },
+          "missing_critical_fields": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Missing Critical Fields",
+            "type": "array"
+          },
+          "potential_root_causes": {
+            "description": "Hypotheses to investigate. NOT determinations.",
+            "items": {
+              "type": "string"
+            },
+            "title": "Potential Root Causes",
+            "type": "array"
+          },
+          "recommended_priority": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Priority"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "recommended_severity": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Severity"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "regulatory_considerations": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Regulatory Considerations",
+            "type": "array"
+          },
+          "risk_factors": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Risk Factors",
+            "type": "array"
+          },
+          "severity_rationale": {
+            "anyOf": [
+              {
+                "maxLength": 1500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Severity Rationale"
+          },
+          "summary": {
+            "maxLength": 2000,
+            "title": "Summary",
+            "type": "string"
+          }
+        },
+        "required": [
+          "summary",
+          "completeness_score"
+        ],
+        "title": "AIAssessment",
+        "type": "object"
+      },
+      "AIConfidence": {
+        "description": "How sure the extractor is about a populated field. Surfaced in the UI so a\nreviewer knows what to double-check - AI output is a recommendation, never a\nconfirmed regulatory determination.",
+        "enum": [
+          "high",
+          "medium",
+          "low"
+        ],
+        "title": "AIConfidence",
+        "type": "string"
+      },
+      "AssessResponse": {
+        "description": "An advisory assessment plus any duplicate candidates found for it.",
+        "properties": {
+          "assessment": {
+            "$ref": "#/components/schemas/AIAssessment"
+          },
+          "duplicates": {
+            "items": {
+              "$ref": "#/components/schemas/DuplicateMatch"
+            },
+            "title": "Duplicates",
+            "type": "array"
+          }
+        },
+        "required": [
+          "assessment",
+          "duplicates"
+        ],
+        "title": "AssessResponse",
+        "type": "object"
+      },
       "Body_login_api_v1_auth_login_post": {
         "properties": {
           "client_id": {
@@ -58,6 +193,55 @@
           "password"
         ],
         "title": "Body_login_api_v1_auth_login_post",
+        "type": "object"
+      },
+      "BudgetStatusResponse": {
+        "description": "Current AI spend against the configured cap.",
+        "properties": {
+          "budget_usd": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Budget Usd",
+            "type": "string"
+          },
+          "call_count": {
+            "title": "Call Count",
+            "type": "integer"
+          },
+          "provider": {
+            "title": "Provider",
+            "type": "string"
+          },
+          "remaining_usd": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Remaining Usd",
+            "type": "string"
+          },
+          "spent_usd": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Spent Usd",
+            "type": "string"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "ISO timestamp of the last recorded call.",
+            "title": "Updated At"
+          }
+        },
+        "required": [
+          "provider",
+          "budget_usd",
+          "spent_usd",
+          "remaining_usd",
+          "call_count"
+        ],
+        "title": "BudgetStatusResponse",
         "type": "object"
       },
       "ComplaintCreate": {
@@ -287,6 +471,221 @@
           "description"
         ],
         "title": "ComplaintCreate",
+        "type": "object"
+      },
+      "ComplaintFieldChanges": {
+        "description": "Output-only mirror of `ComplaintUpdate`'s fields, for use in AI response bodies.\n\n`ComplaintUpdate` must stay a request-only shape. FastAPI/Pydantic\ngenerate split `<Model>-Input` / `<Model>-Output` variants in the OpenAPI\ndocument for any model that appears in both a request body and a response\nbody *if* a field's accepted input type differs from its serialized\noutput type - which `quantity_affected: Decimal | None` does (it accepts\n`number | string | null` on input but always serialises as `string |\nnull` on output). `ComplaintUpdate` is load-bearing as the request body\nof `PATCH /api/v1/complaints/{id}`; putting it in a response as well\nwould split the single `components['schemas']['ComplaintUpdate']` the\nfrontend's generated types depend on\n(`frontend/src/features/complaints/types.ts`).\n\nThis class exists purely so a response can describe \"the fields that\nwould change\" (or were extracted) without putting `ComplaintUpdate` in a\nresponse position at all. Its field list must match `ComplaintUpdate`'s\nexactly - `tests/test_ai_tools.py::test_complaint_field_changes_mirrors_complaint_update`\nasserts that, the same way `tests/test_model_contract_parity.py` pins the\nORM and Pydantic sides of the complaint shape together elsewhere in this\ncodebase.",
+        "properties": {
+          "assigned_investigator_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assigned Investigator Id"
+          },
+          "batch_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Batch Number"
+          },
+          "complaint_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Complaint Date"
+          },
+          "complaint_type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ComplaintType"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "customer_contact": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Customer Contact"
+          },
+          "customer_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Customer Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "dosage_form": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DosageForm"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "due_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Due Date"
+          },
+          "expiry_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expiry Date"
+          },
+          "manufacturing_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Manufacturing Date"
+          },
+          "priority": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Priority"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "product_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Product Name"
+          },
+          "product_strength": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Product Strength"
+          },
+          "quantity_affected": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quantity Affected"
+          },
+          "quantity_unit": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/QuantityUnit"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "reporter_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reporter Name"
+          },
+          "severity": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Severity"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "source": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ComplaintSource"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "title": "ComplaintFieldChanges",
         "type": "object"
       },
       "ComplaintListItem": {
@@ -1061,6 +1460,88 @@
         "title": "DosageForm",
         "type": "string"
       },
+      "DuplicateMatch": {
+        "description": "A possible duplicate surfaced during intake.",
+        "properties": {
+          "complaint_id": {
+            "title": "Complaint Id",
+            "type": "integer"
+          },
+          "matched_on": {
+            "description": "e.g. [\"batch_number\", \"complaint_type\"].",
+            "items": {
+              "type": "string"
+            },
+            "title": "Matched On",
+            "type": "array"
+          },
+          "reference_code": {
+            "title": "Reference Code",
+            "type": "string"
+          },
+          "similarity": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Similarity",
+            "type": "number"
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary"
+          }
+        },
+        "required": [
+          "complaint_id",
+          "reference_code",
+          "similarity"
+        ],
+        "title": "DuplicateMatch",
+        "type": "object"
+      },
+      "EditRequest": {
+        "description": "A natural-language instruction describing what should change.",
+        "properties": {
+          "instruction": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Instruction",
+            "type": "string"
+          }
+        },
+        "required": [
+          "instruction"
+        ],
+        "title": "EditRequest",
+        "type": "object"
+      },
+      "EditResponse": {
+        "description": "The proposed change, for a reviewer to apply.\n\nDeliberately a preview, not an applied update: the AI layer is advisory\n(CLAUDE.md non-negotiable #4), so this endpoint never writes to the\ncomplaint itself. A caller who accepts the proposal submits `update`\nverbatim to the existing `PATCH /api/v1/complaints/{id}`, which already\nenforces `exclude_unset=True`, RBAC and the merge-validation rules.",
+        "properties": {
+          "provenance": {
+            "items": {
+              "$ref": "#/components/schemas/FieldProvenance"
+            },
+            "title": "Provenance",
+            "type": "array"
+          },
+          "update": {
+            "$ref": "#/components/schemas/ComplaintFieldChanges"
+          }
+        },
+        "required": [
+          "update",
+          "provenance"
+        ],
+        "title": "EditResponse",
+        "type": "object"
+      },
       "EnumOption": {
         "description": "A selectable option. `label` is display text derived from the value.",
         "properties": {
@@ -1078,6 +1559,102 @@
           "label"
         ],
         "title": "EnumOption",
+        "type": "object"
+      },
+      "ExtractRequest": {
+        "description": "Raw complaint text to extract structured fields from.",
+        "properties": {
+          "text": {
+            "maxLength": 8000,
+            "minLength": 1,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "title": "ExtractRequest",
+        "type": "object"
+      },
+      "ExtractedComplaint": {
+        "description": "Structured output contract for every AI extraction tool.\n\nBound directly as the LLM's structured-output schema, so the model is\nconstrained to the same enums the database enforces and cannot return an\nunstorable value.",
+        "properties": {
+          "clarifying_questions": {
+            "description": "Questions to ask the user to close the gaps above.",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 5,
+            "title": "Clarifying Questions",
+            "type": "array"
+          },
+          "extraction_notes": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Anything ambiguous worth flagging.",
+            "title": "Extraction Notes"
+          },
+          "fields": {
+            "$ref": "#/components/schemas/ComplaintFieldChanges",
+            "description": "Only the fields actually found in the input."
+          },
+          "missing_fields": {
+            "description": "Important fields absent from the input, for the UI to prompt on.",
+            "items": {
+              "type": "string"
+            },
+            "title": "Missing Fields",
+            "type": "array"
+          },
+          "provenance": {
+            "items": {
+              "$ref": "#/components/schemas/FieldProvenance"
+            },
+            "title": "Provenance",
+            "type": "array"
+          }
+        },
+        "title": "ExtractedComplaint",
+        "type": "object"
+      },
+      "FieldProvenance": {
+        "description": "Per-field record of what the AI did.\n\nDrives the \"AI populated this\" highlighting in the intake UI. Without it the\nuser cannot tell an extracted value from one they typed, which is exactly the\nkind of ambiguity a regulated workflow must not have.",
+        "properties": {
+          "confidence": {
+            "$ref": "#/components/schemas/AIConfidence"
+          },
+          "field": {
+            "description": "Field name on the complaint schema.",
+            "title": "Field",
+            "type": "string"
+          },
+          "source_excerpt": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Verbatim span from the input that justified this value.",
+            "title": "Source Excerpt"
+          }
+        },
+        "required": [
+          "field",
+          "confidence"
+        ],
+        "title": "FieldProvenance",
         "type": "object"
       },
       "HTTPValidationError": {
@@ -1657,6 +2234,186 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/v1/ai/budget": {
+      "get": {
+        "description": "Spend so far against `settings.ai_budget_usd`. Any authenticated user\nmay read this - it drives the always-visible spend indicator on every AI\npanel, not just the ones an individual role can trigger.",
+        "operationId": "get_budget_api_v1_ai_budget_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BudgetStatusResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Current AI spend",
+        "tags": [
+          "ai"
+        ]
+      }
+    },
+    "/api/v1/ai/complaints/{complaint_id}/assess": {
+      "post": {
+        "description": "An advisory severity/priority recommendation, plus duplicate\ncandidates found by `find_duplicate_candidates`.\n\nThe assessment is persisted as an `AIAssessmentRecord` - an append-only\nhistory per that model's own docstring - with any prior record for this\ncomplaint marked superseded rather than deleted, so the trail shows what\nthe AI advised *at the time* a decision was made. The audit trail then\nwrites itself from that insert, same as everywhere else in this codebase.\n\nPer-call token/cost attribution on the stored record is a known\nsimplification for this phase: `app/ai/budget.py`'s ledger already\ntracks aggregate spend precisely (what the hard cap actually needs), and\nthreading exact per-call usage through `graph.run_assess` into this\nrecord is left for a later phase rather than widening every layer's\nreturn signature for a column no endpoint reads yet.",
+        "operationId": "assess_api_v1_ai_complaints__complaint_id__assess_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "complaint_id",
+            "required": true,
+            "schema": {
+              "title": "Complaint Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssessResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Advisory assessment and duplicate check",
+        "tags": [
+          "ai"
+        ]
+      }
+    },
+    "/api/v1/ai/complaints/{complaint_id}/edit": {
+      "post": {
+        "description": "Propose only the fields `payload.instruction` asks to change.\n\nReturns a preview, never an applied change - the AI layer is advisory\n(CLAUDE.md non-negotiable #4). A caller who accepts the proposal submits\n`update` verbatim to the existing `PATCH /api/v1/complaints/{id}`, which\nalready enforces `exclude_unset=True`, RBAC and the merge-validation\nrules; this endpoint does not touch the database.\n\nThe proposal is carried as `ComplaintFieldChanges`, not `ComplaintUpdate`\nitself - see that class's docstring in `app/schemas/ai.py` for why\n`ComplaintUpdate` must never appear in a response body.",
+        "operationId": "edit_api_v1_ai_complaints__complaint_id__edit_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "complaint_id",
+            "required": true,
+            "schema": {
+              "title": "Complaint Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EditRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EditResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Propose a partial edit from an instruction",
+        "tags": [
+          "ai"
+        ]
+      }
+    },
+    "/api/v1/ai/extract": {
+      "post": {
+        "description": "Structured extraction for the intake screen. No complaint needs to\nexist yet - this is what turns a pasted email or transcript into a\npre-filled intake form. See `app/ai/tools/extract.py`.",
+        "operationId": "extract_api_v1_ai_extract_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExtractRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExtractedComplaint"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Extract fields from complaint text",
+        "tags": [
+          "ai"
+        ]
+      }
+    },
     "/api/v1/auth/login": {
       "post": {
         "description": "Standard OAuth2 password flow. `username` carries the email address.\n\nThis is the endpoint Swagger's Authorize button uses.",

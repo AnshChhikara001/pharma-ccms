@@ -4,6 +4,114 @@
  */
 
 export interface paths {
+    "/api/v1/ai/budget": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Current AI spend
+         * @description Spend so far against `settings.ai_budget_usd`. Any authenticated user
+         *     may read this - it drives the always-visible spend indicator on every AI
+         *     panel, not just the ones an individual role can trigger.
+         */
+        get: operations["get_budget_api_v1_ai_budget_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ai/complaints/{complaint_id}/assess": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Advisory assessment and duplicate check
+         * @description An advisory severity/priority recommendation, plus duplicate
+         *     candidates found by `find_duplicate_candidates`.
+         *
+         *     The assessment is persisted as an `AIAssessmentRecord` - an append-only
+         *     history per that model's own docstring - with any prior record for this
+         *     complaint marked superseded rather than deleted, so the trail shows what
+         *     the AI advised *at the time* a decision was made. The audit trail then
+         *     writes itself from that insert, same as everywhere else in this codebase.
+         *
+         *     Per-call token/cost attribution on the stored record is a known
+         *     simplification for this phase: `app/ai/budget.py`'s ledger already
+         *     tracks aggregate spend precisely (what the hard cap actually needs), and
+         *     threading exact per-call usage through `graph.run_assess` into this
+         *     record is left for a later phase rather than widening every layer's
+         *     return signature for a column no endpoint reads yet.
+         */
+        post: operations["assess_api_v1_ai_complaints__complaint_id__assess_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ai/complaints/{complaint_id}/edit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Propose a partial edit from an instruction
+         * @description Propose only the fields `payload.instruction` asks to change.
+         *
+         *     Returns a preview, never an applied change - the AI layer is advisory
+         *     (CLAUDE.md non-negotiable #4). A caller who accepts the proposal submits
+         *     `update` verbatim to the existing `PATCH /api/v1/complaints/{id}`, which
+         *     already enforces `exclude_unset=True`, RBAC and the merge-validation
+         *     rules; this endpoint does not touch the database.
+         *
+         *     The proposal is carried as `ComplaintFieldChanges`, not `ComplaintUpdate`
+         *     itself - see that class's docstring in `app/schemas/ai.py` for why
+         *     `ComplaintUpdate` must never appear in a response body.
+         */
+        post: operations["edit_api_v1_ai_complaints__complaint_id__edit_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ai/extract": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Extract fields from complaint text
+         * @description Structured extraction for the intake screen. No complaint needs to
+         *     exist yet - this is what turns a pasted email or transcript into a
+         *     pre-filled intake form. See `app/ai/tools/extract.py`.
+         */
+        post: operations["extract_api_v1_ai_extract_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/login": {
         parameters: {
             query?: never;
@@ -275,6 +383,65 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * AIAssessment
+         * @description The AI's read on a complaint.
+         *
+         *     Every consumer must render this behind an explicit advisory label. These are
+         *     recommendations to a qualified reviewer, never confirmed regulatory
+         *     determinations or established root causes.
+         */
+        AIAssessment: {
+            /** Capa Recommendations */
+            capa_recommendations?: string[];
+            /**
+             * Completeness Score
+             * @description Percentage of triage-critical fields present.
+             */
+            completeness_score: number;
+            /**
+             * Disclaimer
+             * @description Rendered verbatim wherever this assessment is shown.
+             * @default AI-generated recommendation. Not a confirmed root cause or regulatory decision. Must be reviewed and approved by qualified QA personnel.
+             */
+            disclaimer: string;
+            /** Investigation Steps */
+            investigation_steps?: string[];
+            /** Missing Critical Fields */
+            missing_critical_fields?: string[];
+            /**
+             * Potential Root Causes
+             * @description Hypotheses to investigate. NOT determinations.
+             */
+            potential_root_causes?: string[];
+            recommended_priority?: components["schemas"]["Priority"] | null;
+            recommended_severity?: components["schemas"]["Severity"] | null;
+            /** Regulatory Considerations */
+            regulatory_considerations?: string[];
+            /** Risk Factors */
+            risk_factors?: string[];
+            /** Severity Rationale */
+            severity_rationale?: string | null;
+            /** Summary */
+            summary: string;
+        };
+        /**
+         * AIConfidence
+         * @description How sure the extractor is about a populated field. Surfaced in the UI so a
+         *     reviewer knows what to double-check - AI output is a recommendation, never a
+         *     confirmed regulatory determination.
+         * @enum {string}
+         */
+        AIConfidence: "high" | "medium" | "low";
+        /**
+         * AssessResponse
+         * @description An advisory assessment plus any duplicate candidates found for it.
+         */
+        AssessResponse: {
+            assessment: components["schemas"]["AIAssessment"];
+            /** Duplicates */
+            duplicates: components["schemas"]["DuplicateMatch"][];
+        };
         /** Body_login_api_v1_auth_login_post */
         Body_login_api_v1_auth_login_post: {
             /** Client Id */
@@ -298,6 +465,27 @@ export interface components {
             scope: string;
             /** Username */
             username: string;
+        };
+        /**
+         * BudgetStatusResponse
+         * @description Current AI spend against the configured cap.
+         */
+        BudgetStatusResponse: {
+            /** Budget Usd */
+            budget_usd: string;
+            /** Call Count */
+            call_count: number;
+            /** Provider */
+            provider: string;
+            /** Remaining Usd */
+            remaining_usd: string;
+            /** Spent Usd */
+            spent_usd: string;
+            /**
+             * Updated At
+             * @description ISO timestamp of the last recorded call.
+             */
+            updated_at?: string | null;
         };
         /**
          * ComplaintCreate
@@ -353,6 +541,64 @@ export interface components {
             reporter_name?: string | null;
             severity?: components["schemas"]["Severity"] | null;
             /** @description How the complaint reached us. */
+            source?: components["schemas"]["ComplaintSource"] | null;
+        };
+        /**
+         * ComplaintFieldChanges
+         * @description Output-only mirror of `ComplaintUpdate`'s fields, for use in AI response bodies.
+         *
+         *     `ComplaintUpdate` must stay a request-only shape. FastAPI/Pydantic
+         *     generate split `<Model>-Input` / `<Model>-Output` variants in the OpenAPI
+         *     document for any model that appears in both a request body and a response
+         *     body *if* a field's accepted input type differs from its serialized
+         *     output type - which `quantity_affected: Decimal | None` does (it accepts
+         *     `number | string | null` on input but always serialises as `string |
+         *     null` on output). `ComplaintUpdate` is load-bearing as the request body
+         *     of `PATCH /api/v1/complaints/{id}`; putting it in a response as well
+         *     would split the single `components['schemas']['ComplaintUpdate']` the
+         *     frontend's generated types depend on
+         *     (`frontend/src/features/complaints/types.ts`).
+         *
+         *     This class exists purely so a response can describe "the fields that
+         *     would change" (or were extracted) without putting `ComplaintUpdate` in a
+         *     response position at all. Its field list must match `ComplaintUpdate`'s
+         *     exactly - `tests/test_ai_tools.py::test_complaint_field_changes_mirrors_complaint_update`
+         *     asserts that, the same way `tests/test_model_contract_parity.py` pins the
+         *     ORM and Pydantic sides of the complaint shape together elsewhere in this
+         *     codebase.
+         */
+        ComplaintFieldChanges: {
+            /** Assigned Investigator Id */
+            assigned_investigator_id?: number | null;
+            /** Batch Number */
+            batch_number?: string | null;
+            /** Complaint Date */
+            complaint_date?: string | null;
+            complaint_type?: components["schemas"]["ComplaintType"] | null;
+            /** Customer Contact */
+            customer_contact?: string | null;
+            /** Customer Name */
+            customer_name?: string | null;
+            /** Description */
+            description?: string | null;
+            dosage_form?: components["schemas"]["DosageForm"] | null;
+            /** Due Date */
+            due_date?: string | null;
+            /** Expiry Date */
+            expiry_date?: string | null;
+            /** Manufacturing Date */
+            manufacturing_date?: string | null;
+            priority?: components["schemas"]["Priority"] | null;
+            /** Product Name */
+            product_name?: string | null;
+            /** Product Strength */
+            product_strength?: string | null;
+            /** Quantity Affected */
+            quantity_affected?: string | null;
+            quantity_unit?: components["schemas"]["QuantityUnit"] | null;
+            /** Reporter Name */
+            reporter_name?: string | null;
+            severity?: components["schemas"]["Severity"] | null;
             source?: components["schemas"]["ComplaintSource"] | null;
         };
         /**
@@ -579,6 +825,48 @@ export interface components {
          */
         DosageForm: "tablet" | "capsule" | "injection" | "syrup" | "suspension" | "cream" | "ointment" | "gel" | "drops" | "inhaler" | "powder" | "sachet" | "suppository" | "patch" | "other";
         /**
+         * DuplicateMatch
+         * @description A possible duplicate surfaced during intake.
+         */
+        DuplicateMatch: {
+            /** Complaint Id */
+            complaint_id: number;
+            /**
+             * Matched On
+             * @description e.g. ["batch_number", "complaint_type"].
+             */
+            matched_on?: string[];
+            /** Reference Code */
+            reference_code: string;
+            /** Similarity */
+            similarity: number;
+            /** Summary */
+            summary?: string | null;
+        };
+        /**
+         * EditRequest
+         * @description A natural-language instruction describing what should change.
+         */
+        EditRequest: {
+            /** Instruction */
+            instruction: string;
+        };
+        /**
+         * EditResponse
+         * @description The proposed change, for a reviewer to apply.
+         *
+         *     Deliberately a preview, not an applied update: the AI layer is advisory
+         *     (CLAUDE.md non-negotiable #4), so this endpoint never writes to the
+         *     complaint itself. A caller who accepts the proposal submits `update`
+         *     verbatim to the existing `PATCH /api/v1/complaints/{id}`, which already
+         *     enforces `exclude_unset=True`, RBAC and the merge-validation rules.
+         */
+        EditResponse: {
+            /** Provenance */
+            provenance: components["schemas"]["FieldProvenance"][];
+            update: components["schemas"]["ComplaintFieldChanges"];
+        };
+        /**
          * EnumOption
          * @description A selectable option. `label` is display text derived from the value.
          */
@@ -587,6 +875,64 @@ export interface components {
             label: string;
             /** Value */
             value: string;
+        };
+        /**
+         * ExtractRequest
+         * @description Raw complaint text to extract structured fields from.
+         */
+        ExtractRequest: {
+            /** Text */
+            text: string;
+        };
+        /**
+         * ExtractedComplaint
+         * @description Structured output contract for every AI extraction tool.
+         *
+         *     Bound directly as the LLM's structured-output schema, so the model is
+         *     constrained to the same enums the database enforces and cannot return an
+         *     unstorable value.
+         */
+        ExtractedComplaint: {
+            /**
+             * Clarifying Questions
+             * @description Questions to ask the user to close the gaps above.
+             */
+            clarifying_questions?: string[];
+            /**
+             * Extraction Notes
+             * @description Anything ambiguous worth flagging.
+             */
+            extraction_notes?: string | null;
+            /** @description Only the fields actually found in the input. */
+            fields?: components["schemas"]["ComplaintFieldChanges"];
+            /**
+             * Missing Fields
+             * @description Important fields absent from the input, for the UI to prompt on.
+             */
+            missing_fields?: string[];
+            /** Provenance */
+            provenance?: components["schemas"]["FieldProvenance"][];
+        };
+        /**
+         * FieldProvenance
+         * @description Per-field record of what the AI did.
+         *
+         *     Drives the "AI populated this" highlighting in the intake UI. Without it the
+         *     user cannot tell an extracted value from one they typed, which is exactly the
+         *     kind of ambiguity a regulated workflow must not have.
+         */
+        FieldProvenance: {
+            confidence: components["schemas"]["AIConfidence"];
+            /**
+             * Field
+             * @description Field name on the complaint schema.
+             */
+            field: string;
+            /**
+             * Source Excerpt
+             * @description Verbatim span from the input that justified this value.
+             */
+            source_excerpt?: string | null;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -854,6 +1200,125 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    get_budget_api_v1_ai_budget_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BudgetStatusResponse"];
+                };
+            };
+        };
+    };
+    assess_api_v1_ai_complaints__complaint_id__assess_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                complaint_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssessResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    edit_api_v1_ai_complaints__complaint_id__edit_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                complaint_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EditRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EditResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    extract_api_v1_ai_extract_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExtractRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExtractedComplaint"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     login_api_v1_auth_login_post: {
         parameters: {
             query?: never;
