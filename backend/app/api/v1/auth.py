@@ -48,7 +48,7 @@ def _authenticate(db: Session, email: str, password: str) -> User:
 
 def _token_for(user: User) -> Token:
     return Token(
-        access_token=create_access_token(subject=user.id, role=user.role.value),
+        access_token=create_access_token(subject=user.id, role=user.role.value, email=user.email),
         expires_in_minutes=settings.access_token_expire_minutes,
     )
 
